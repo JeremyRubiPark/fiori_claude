@@ -15,8 +15,8 @@ CLASS zcl_sf_employee_query DEFINITION
   PRIVATE SECTION.
     CONSTANTS:
       c_use_mock TYPE abap_bool VALUE abap_true,
-      c_scenario TYPE string    VALUE 'ZSF_ODATA_SCENARIO',
-      c_service  TYPE string    VALUE 'ZSF_ODATA_REST',
+      c_scenario TYPE c LENGTH 30 VALUE 'ZSF_ODATA_SCENARIO',
+      c_service  TYPE c LENGTH 30 VALUE 'ZSF_ODATA_REST',
       c_uri_path TYPE string    VALUE '/odata/v2/User',
       c_select   TYPE string    VALUE 'userId,username,firstName,lastName,email,department,division,title,location,status'.
 
