@@ -3,9 +3,8 @@
     displayBlock="true"
     height="100%"
     xmlns="sap.m"
-    xmlns:l="sap.ui.layout"
     xmlns:mvc="sap.ui.core.mvc">
-    <Page id="page" title="{i18n>appTitle}" enableScrolling="false">
+    <Page id="page" title="{i18n>appTitle}">
         <subHeader>
             <OverflowToolbar>
                 <SearchField width="18rem" placeholder="{i18n>searchPlaceholder}" search=".onSearch" />
@@ -18,11 +17,8 @@
             </OverflowToolbar>
         </subHeader>
         <content>
-            <l:Splitter height="100%">
-                <ScrollContainer height="100%" vertical="true">
-                    <layoutData>
-                        <l:SplitterLayoutData size="38%" minSize="260" />
-                    </layoutData>
+            <FlexBox wrap="Wrap" alignItems="Start" class="sapUiSmallMargin">
+                <VBox width="32rem" class="sapUiSmallMarginEnd sapUiSmallMarginBottom">
                     <Tree id="tree" mode="SingleSelectMaster" selectionChange=".onSelect"
                         noDataText="{i18n>noUnits}"
                         items="{path: 'org>/nodes', parameters: {arrayNames: ['nodes']}}">
@@ -36,8 +32,8 @@
                             </content>
                         </CustomTreeItem>
                     </Tree>
-                </ScrollContainer>
-                <ScrollContainer height="100%" vertical="true">
+                </VBox>
+                <VBox width="44rem" class="sapUiSmallMarginBottom">
                     <VBox class="sapUiSmallMargin" visible="{= !${sel>/id} }">
                         <Text text="{i18n>selectUnit}" />
                     </VBox>
@@ -87,8 +83,8 @@
                             </items>
                         </Table>
                     </VBox>
-                </ScrollContainer>
-            </l:Splitter>
+                </VBox>
+            </FlexBox>
         </content>
     </Page>
 </mvc:View>
