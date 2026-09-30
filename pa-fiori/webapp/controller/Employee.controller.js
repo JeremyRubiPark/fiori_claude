@@ -122,11 +122,13 @@ sap.ui.define([
             IT.INFOTYPES.forEach(function (def) {
                 var table = that._createTable(def);
                 that._tables[def.id] = table;
-                var toolbar = that._createToolbar(def);
+                // the toolbar is the table's own header, so toolbar and table stay in one block
+                // (separate blocks of a sub section are laid out side by side)
+                table.setHeaderToolbar(that._createToolbar(def));
                 var title = that.getText("it_" + def.id);
                 layout.addSection(new ObjectPageSection({
                     title: def.id + " " + title,
-                    subSections: [new ObjectPageSubSection({ blocks: [toolbar, table] })]
+                    subSections: [new ObjectPageSubSection({ blocks: [table] })]
                 }));
             });
         },
