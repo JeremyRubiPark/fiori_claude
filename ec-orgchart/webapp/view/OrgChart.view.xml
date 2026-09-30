@@ -26,10 +26,15 @@
                     <Tree id="tree" mode="SingleSelectMaster" selectionChange=".onSelect"
                         noDataText="{i18n>noUnits}"
                         items="{path: 'org>/nodes', parameters: {arrayNames: ['nodes']}}">
-                        <StandardTreeItem title="{org>name}"
-                            description="{= ${org>manager} ? ${i18n>manager} + ': ' + ${org>manager} : '' }"
-                            info="{org>total}"
-                            highlight="{= ${org>match} ? 'Information' : 'None' }" />
+                        <CustomTreeItem highlight="{= ${org>match} ? 'Information' : 'None' }">
+                            <content>
+                                <VBox class="sapUiTinyMarginTopBottom sapUiTinyMarginBeginEnd">
+                                    <Text text="{org>name} ({org>total})" />
+                                    <Text text="{= ${org>manager} ? ${i18n>manager} + ': ' + ${org>manager} : '' }"
+                                        visible="{= !!${org>manager} }" />
+                                </VBox>
+                            </content>
+                        </CustomTreeItem>
                     </Tree>
                 </ScrollContainer>
                 <ScrollContainer height="100%" vertical="true">
