@@ -78,3 +78,8 @@ c_use_mock TYPE abap_bool VALUE abap_false,
 - JSON 파싱에 `/UI2/CL_JSON`을 사용합니다. 인스턴스에서 사용할 수 없으면 XCO(`xco_cp_json`)로 교체하면 됩니다.
 - SF 응답이 200이 아니면 예외가 발생합니다. 원인은 ADT의 *Feed Reader / Application Log*, 또는 Communication Arrangement 설정을 확인하세요.
 - 조회 전용(읽기) 앱입니다. 수정/생성이 필요하면 Custom Entity 대신 Unmanaged RAP BO로 확장해야 합니다.
+
+## PA20 / PA30 prototype
+
+`pa-fiori/` contains a mock prototype of the ECC transactions PA20 (display) and PA30 (maintain)
+for infotypes 0000, 0001, 0002 and 0006. See `pa-fiori/README.md`.

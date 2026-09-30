@@ -1,0 +1,46 @@
+<mvc:View
+    controllerName="zpa.hr.controller.Employee"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:uxap="sap.uxap"
+    xmlns:mvc="sap.ui.core.mvc">
+    <Page id="page" enableScrolling="false" showNavButton="true" navButtonPress=".onNavBack"
+        title="{= ${app>/mode} === 'maintain' ? ${i18n>appTitleMaintain} : ${i18n>appTitleDisplay} }">
+        <headerContent>
+            <Label text="{i18n>keyDate}" labelFor="keyDate" />
+            <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" value="{ui>/keyDate}"
+                change=".onKeyDateChange" />
+            <ToolbarSpacer />
+            <Button id="editButton" visible="{= ${app>/mode} === 'maintain' }"
+                text="{= ${ui>/editing} ? ${i18n>endEdit} : ${i18n>startEdit} }"
+                icon="{= ${ui>/editing} ? 'sap-icon://display' : 'sap-icon://edit' }"
+                type="Emphasized" press=".onToggleEdit" />
+        </headerContent>
+        <content>
+            <uxap:ObjectPageLayout id="opl" upperCaseAnchorBar="false" showTitleInHeaderContent="true"
+                useIconTabBar="false" enableLazyLoading="false">
+                <uxap:headerTitle>
+                    <uxap:ObjectPageHeader objectTitle="{emp>/fullName}"
+                        objectSubtitle="{emp>/pernr} - {emp>/plansText}"
+                        isObjectTitleAlwaysVisible="true" />
+                </uxap:headerTitle>
+                <uxap:headerContent>
+                    <VBox class="sapUiSmallMarginEnd">
+                        <ObjectStatus title="{i18n>orgUnit}" text="{emp>/orgehText}" />
+                        <ObjectStatus title="{i18n>job}" text="{emp>/stellText}" />
+                    </VBox>
+                    <VBox class="sapUiSmallMarginEnd">
+                        <ObjectStatus title="{i18n>status}" text="{emp>/statusText}" state="{emp>/statusState}" />
+                        <ObjectStatus title="{i18n>entryDate}" text="{path: 'emp>/entryDate', formatter: '.formatter.fmtDate'}" />
+                    </VBox>
+                    <VBox>
+                        <ObjectStatus icon="sap-icon://locked" visible="{= !!${emp>/lockedBy} }"
+                            text="{= ${emp>/lockedBy} === ${ui>/user} ? ${i18n>lockedByMe} : ${i18n>lockedByOther} + ' ' + ${emp>/lockedBy} }"
+                            state="{= ${emp>/lockedBy} === ${ui>/user} ? 'Success' : 'Error' }" />
+                    </VBox>
+                </uxap:headerContent>
+                <!-- one section per infotype is added by the controller -->
+            </uxap:ObjectPageLayout>
+        </content>
+    </Page>
+</mvc:View>

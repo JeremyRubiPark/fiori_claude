@@ -1,0 +1,68 @@
+<mvc:View
+    controllerName="zpa.hr.controller.Search"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:mvc="sap.ui.core.mvc">
+    <Page id="page" title="{= ${app>/mode} === 'maintain' ? ${i18n>appTitleMaintain} : ${i18n>appTitleDisplay} }">
+        <content>
+            <f:SimpleForm editable="true" layout="ResponsiveGridLayout" columnsL="3" columnsM="2"
+                labelSpanL="4" labelSpanM="4" singleContainerFullSize="false">
+                <f:content>
+                    <Label text="{i18n>mode}" />
+                    <SegmentedButton selectedKey="{app>/mode}">
+                        <items>
+                            <SegmentedButtonItem key="display" text="{i18n>modeDisplay}" />
+                            <SegmentedButtonItem key="maintain" text="{i18n>modeMaintain}" />
+                        </items>
+                    </SegmentedButton>
+                    <Label text="{i18n>keyDate}" />
+                    <DatePicker id="keyDate" valueFormat="yyyy-MM-dd" value="{filter>/keyDate}" />
+                    <Label text="{i18n>pernr}" />
+                    <Input id="pernr" value="{filter>/pernr}" maxLength="8" submit=".onSearch" />
+                    <Label text="{i18n>name}" />
+                    <Input id="name" value="{filter>/name}" submit=".onSearch" />
+                    <Label text="{i18n>orgUnit}" />
+                    <Select id="orgeh" selectedKey="{filter>/orgeh}" items="{filter>/orgList}">
+                        <core:Item key="{filter>key}" text="{filter>text}" />
+                    </Select>
+                    <Label />
+                    <HBox>
+                        <Button text="{i18n>search}" type="Emphasized" press=".onSearch" class="sapUiTinyMarginEnd" />
+                        <Button text="{i18n>reset}" press=".onReset" />
+                    </HBox>
+                </f:content>
+            </f:SimpleForm>
+
+            <Table id="table" items="{results>/rows}" mode="None" growing="true" growingThreshold="50"
+                noDataText="{i18n>noEmployees}" class="sapUiResponsiveMargin" width="auto">
+                <headerToolbar>
+                    <OverflowToolbar>
+                        <Title text="{i18n>employees} ({= ${results>/rows}.length })" />
+                    </OverflowToolbar>
+                </headerToolbar>
+                <columns>
+                    <Column><Text text="{i18n>pernr}" /></Column>
+                    <Column><Text text="{i18n>name}" /></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>orgUnit}" /></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>position}" /></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>status}" /></Column>
+                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>entryDate}" /></Column>
+                </columns>
+                <items>
+                    <ColumnListItem type="Navigation" press=".onPressEmployee">
+                        <cells>
+                            <ObjectIdentifier title="{results>pernr}" />
+                            <Text text="{results>fullName}" />
+                            <Text text="{results>orgehText}" />
+                            <Text text="{results>plansText}" />
+                            <ObjectStatus text="{results>statusText}" state="{results>statusState}" />
+                            <Text text="{path: 'results>entryDate', formatter: '.formatter.fmtDate'}" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+    </Page>
+</mvc:View>

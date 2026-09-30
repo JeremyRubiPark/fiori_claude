@@ -1,0 +1,90 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "zpa.hr",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": { "version": "0.1.0" },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "crossNavigation": {
+      "inbounds": {
+        "zpaemployee-display": {
+          "semanticObject": "ZPAEMPLOYEE",
+          "action": "display",
+          "title": "{{appTitleDisplay}}",
+          "signature": {
+            "parameters": {
+              "mode": { "defaultValue": { "value": "display" }, "required": false }
+            },
+            "additionalParameters": "allowed"
+          }
+        },
+        "zpaemployee-change": {
+          "semanticObject": "ZPAEMPLOYEE",
+          "action": "change",
+          "title": "{{appTitleMaintain}}",
+          "signature": {
+            "parameters": {
+              "mode": { "defaultValue": { "value": "maintain" }, "required": false }
+            },
+            "additionalParameters": "allowed"
+          }
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
+  },
+  "sap.ui5": {
+    "flexEnabled": false,
+    "rootView": {
+      "viewName": "zpa.hr.view.App",
+      "type": "XML",
+      "async": true,
+      "id": "app"
+    },
+    "dependencies": {
+      "minUI5Version": "1.120.0",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {},
+        "sap.ui.layout": {},
+        "sap.uxap": {}
+      }
+    },
+    "contentDensities": { "compact": true, "cozy": true },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "zpa.hr.i18n.i18n",
+          "supportedLocales": ["", "ko"],
+          "fallbackLocale": ""
+        }
+      }
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "type": "View",
+        "viewType": "XML",
+        "path": "zpa.hr.view",
+        "controlId": "app",
+        "controlAggregation": "pages",
+        "transition": "slide",
+        "async": true
+      },
+      "routes": [
+        { "pattern": "", "name": "search", "target": "search" },
+        { "pattern": "employee/{pernr}", "name": "employee", "target": "employee" }
+      ],
+      "targets": {
+        "search": { "viewName": "Search", "viewId": "search", "viewLevel": 1 },
+        "employee": { "viewName": "Employee", "viewId": "employee", "viewLevel": 2 }
+      }
+    }
+  }
+}
