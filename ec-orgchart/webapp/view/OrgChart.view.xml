@@ -4,6 +4,8 @@
     height="100%"
     xmlns="sap.m"
     xmlns:mvc="sap.ui.core.mvc">
+    <App id="app">
+        <pages>
     <Page id="page" title="{i18n>appTitle}">
         <subHeader>
             <OverflowToolbar>
@@ -87,4 +89,6 @@
             </FlexBox>
         </content>
     </Page>
+        </pages>
+    </App>
 </mvc:View>
