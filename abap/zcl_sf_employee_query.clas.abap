@@ -159,7 +159,7 @@ CLASS zcl_sf_employee_query IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(lx_root).
-        RAISE EXCEPTION NEW cx_rap_query_provider( previous = lx_root ).
+        RAISE EXCEPTION NEW zcx_sf_employee_error( previous = lx_root ).
     ENDTRY.
   ENDMETHOD.
 
@@ -192,7 +192,7 @@ CLASS zcl_sf_employee_query IMPLEMENTATION.
         DATA(lv_json)     = lo_response->get_text( ).
 
         IF lv_status <> 200.
-          RAISE EXCEPTION TYPE cx_rap_query_provider.
+          RAISE EXCEPTION TYPE zcx_sf_employee_error.
         ENDIF.
 
         /ui2/cl_json=>deserialize(

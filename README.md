@@ -17,6 +17,7 @@ Fiori elements 앱 ──OData V4──> RAP Service Binding ──> Custom Enti
 | 경로 | 내용 |
 |---|---|
 | `abap/zi_sf_employee.asddls` | Custom Entity (필드 + UI 애노테이션 포함) |
+| `abap/zcx_sf_employee_error.clas.abap` | 예외 클래스 (`CX_RAP_QUERY_PROVIDER`가 abstract라 구체 하위 클래스 필요) |
 | `abap/zcl_sf_employee_query.clas.abap` | Query Provider 클래스 (Mock/실제 SF 전환 스위치 포함) |
 | `abap/zui_sf_employee.srvd` | Service Definition |
 | `app/webapp/` | Fiori elements 앱 (`manifest.json`, `Component.js`, `i18n`, `index.html`) |
@@ -27,12 +28,14 @@ Fiori elements 앱 ──OData V4──> RAP Service Binding ──> Custom Enti
 `ZCL_SF_EMPLOYEE_QUERY`의 `c_use_mock`이 기본값 `abap_true`라서 샘플 직원 8명으로 동작합니다.
 
 1. **ADT**에서 ABAP Cloud Project(BTP 인스턴스) 연결 후 패키지 `ZSF_EMPLOYEE` 생성
-2. 클래스 생성: `ZCL_SF_EMPLOYEE_QUERY` → 소스를 `zcl_sf_employee_query.clas.abap` 내용으로 교체 후 Activate
+2. **예외 클래스 먼저**: 클래스 `ZCX_SF_EMPLOYEE_ERROR` 생성 → 소스를 `zcx_sf_employee_error.clas.abap` 내용으로 교체 후 Activate
+   (Superclass는 `CX_RAP_QUERY_PROVIDER`)
+3. 클래스 생성: `ZCL_SF_EMPLOYEE_QUERY` → 소스를 `zcl_sf_employee_query.clas.abap` 내용으로 교체 후 Activate
    (Custom Entity가 클래스를 참조하고 클래스가 엔티티를 참조하므로, 처음엔 **빈 클래스(IF_RAP_QUERY_PROVIDER 구현)를 먼저 만들고**, 엔티티를 activate한 뒤 클래스 소스를 채우는 순서가 안전합니다.)
-3. Data Definition → *Custom Entity* 로 `ZI_SF_EMPLOYEE` 생성 → `zi_sf_employee.asddls` 내용 붙여넣고 Activate
-4. Service Definition `ZUI_SF_EMPLOYEE` 생성 → `zui_sf_employee.srvd` 내용 붙여넣고 Activate
-5. Service Binding `ZUI_SF_EMPLOYEE_O4` 생성 (Binding Type: **OData V4 – UI**, Service Definition: `ZUI_SF_EMPLOYEE`) → **Publish**
-6. Service Binding 화면의 `Employee` 엔티티 → **Preview** 로 List Report 화면 확인
+4. Data Definition → *Custom Entity* 로 `ZI_SF_EMPLOYEE` 생성 → `zi_sf_employee.asddls` 내용 붙여넣고 Activate
+5. Service Definition `ZUI_SF_EMPLOYEE` 생성 → `zui_sf_employee.srvd` 내용 붙여넣고 Activate
+6. Service Binding `ZUI_SF_EMPLOYEE_O4` 생성 (Binding Type: **OData V4 – UI**, Service Definition: `ZUI_SF_EMPLOYEE`) → **Publish**
+7. Service Binding 화면의 `Employee` 엔티티 → **Preview** 로 List Report 화면 확인
 
 ## 2단계 – Fiori 앱 배포 (BAS)
 
