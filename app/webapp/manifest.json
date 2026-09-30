@@ -34,6 +34,19 @@
           "odataVersion": "4.0"
         }
       }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "ZSFEMPLOYEE-display": {
+          "semanticObject": "ZSFEMPLOYEE",
+          "action": "display",
+          "title": "{{ZSFEMPLOYEE-display.flpTitle}}",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
+      }
     }
   },
   "sap.ui": {
