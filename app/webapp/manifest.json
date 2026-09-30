@@ -1,55 +1,77 @@
 {
-  "_version": "1.60.0",
+  "_version": "1.86.0",
   "sap.app": {
-    "id": "zsf.employee",
+    "id": "zsfemployee",
     "type": "application",
     "i18n": "i18n/i18n.properties",
-    "applicationVersion": { "version": "0.0.1" },
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:lrop",
+      "version": "1.33.0",
+      "toolsId": "0be8c3e9-e9d2-4156-a52c-8e8577130ed6"
+    },
     "dataSources": {
+      "annotation": {
+        "type": "ODataAnnotation",
+        "uri": "annotations/annotation.xml",
+        "settings": {
+          "localUri": "annotations/annotation.xml"
+        }
+      },
       "mainService": {
         "uri": "/sap/opu/odata4/sap/zui_sf_employee_o4/srvd/sap/zui_sf_employee/0001/",
         "type": "OData",
         "settings": {
-          "annotations": [],
+          "annotations": [
+            "annotation"
+          ],
+          "localUri": "localService/mainService/metadata.xml",
           "odataVersion": "4.0"
-        }
-      }
-    },
-    "crossNavigation": {
-      "inbounds": {
-        "zsfemployee-display": {
-          "semanticObject": "zsfemployee",
-          "action": "display",
-          "title": "{{appTitle}}",
-          "signature": {
-            "parameters": {},
-            "additionalParameters": "allowed"
-          }
         }
       }
     }
   },
   "sap.ui": {
     "technology": "UI5",
-    "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
   },
   "sap.ui5": {
     "flexEnabled": true,
     "dependencies": {
-      "minUI5Version": "1.120.0",
+      "minUI5Version": "1.148.9",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {},
         "sap.fe.templates": {}
       }
     },
-    "contentDensities": { "compact": true, "cozy": true },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
     "models": {
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
-        "settings": { "bundleName": "zsf.employee.i18n.i18n" }
+        "settings": {
+          "bundleName": "zsfemployee.i18n.i18n"
+        }
       },
       "": {
         "dataSource": "mainService",
@@ -59,7 +81,14 @@
           "autoExpandSelect": true,
           "earlyRequests": true
         }
+      },
+      "@i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "uri": "i18n/i18n.properties"
       }
+    },
+    "resources": {
+      "css": []
     },
     "routing": {
       "config": {},
@@ -84,16 +113,17 @@
             "settings": {
               "contextPath": "/Employee",
               "variantManagement": "Page",
-              "initialLoad": "Enabled",
               "navigation": {
                 "Employee": {
-                  "detail": { "route": "EmployeeObjectPage" }
+                  "detail": {
+                    "route": "EmployeeObjectPage"
+                  }
                 }
               },
               "controlConfiguration": {
                 "@com.sap.vocabularies.UI.v1.LineItem": {
                   "tableSettings": {
-                    "type": "ResponsiveTable"
+                    "type": "GridTable"
                   }
                 }
               }
@@ -106,8 +136,8 @@
           "name": "sap.fe.templates.ObjectPage",
           "options": {
             "settings": {
-              "contextPath": "/Employee",
-              "editableHeaderContent": false
+              "editableHeaderContent": false,
+              "contextPath": "/Employee"
             }
           }
         }
@@ -117,5 +147,10 @@
   "sap.fiori": {
     "registrationIds": [],
     "archeType": "transactional"
+  },
+  "sap.fe": {
+    "app": {
+      "enableLazyLoading": true
+    }
   }
 }
