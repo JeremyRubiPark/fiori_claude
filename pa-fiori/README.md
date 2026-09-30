@@ -6,7 +6,7 @@ Freestyle SAPUI5 app (sap.m, sap.uxap ObjectPageLayout) that imitates the two HR
 * **Maintain** (PA30): choose *Edit* (locks the employee), then **Create / Copy / Change / Delimit / Delete**
   records with the same time-constraint rules as SAP HR (TC1: no gaps/overlaps; TC2: per subtype).
 
-* **Personnel actions** (PA40): in maintain mode choose *Execute Action* (search page or employee page).
+* **Personnel actions** (PA40): choose *Personnel Action* (Korean: 인사발령) on the search page or the employee page (also in display mode).
   Hiring (01), Organizational reassignment (02) and Leaving (10) write the 0000 action record plus the
   infotypes of the action's info group (hiring: 0002, 0001, 0006; reassignment: 0001) in one step.
   If any step fails nothing is saved. Action 03 (change in pay) is not offered because it needs infotype 0008.
@@ -38,8 +38,8 @@ Reload the page to reset the sample data.
 | Future hire | 10000006 | Key date today: closest record is shown |
 | TC1 insert | any | Create 0001 record with a begda in the middle of a period; previous record is delimited |
 | TC2 addresses | 10000001 | Delimit, overlap error, different subtypes side by side |
-| Hiring | new | Maintain mode -> Execute Action -> Hiring; fill 0002/0001/0006, a new personnel number is assigned; clear a required field to see that nothing is saved |
-| Reassignment / Leaving | 10000002 | Employee page -> Execute Action; leaving a leaver (10000005) or a locked employee (10000004) is rejected |
+| Hiring | new | Personnel Action -> Hiring; fill 0002/0001/0006, a new personnel number is assigned; clear a required field to see that nothing is saved |
+| Reassignment / Leaving | 10000002 | Employee page -> Personnel Action; leaving a leaver (10000005) or a locked employee (10000004) is rejected |
 | Delete TC1 | any | Previous record is stretched; last record cannot be deleted |
 
 ## Deploy to the ABAP environment (BTP Trial)

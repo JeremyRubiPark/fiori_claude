@@ -11,8 +11,8 @@
             <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" value="{ui>/keyDate}"
                 change=".onKeyDateChange" />
             <ToolbarSpacer />
-            <Button id="actionButton" visible="{= ${app>/mode} === 'maintain' }"
-                text="{i18n>executeAction}" icon="sap-icon://action" press=".onExecuteAction" />
+            <Button id="actionButton" text="{i18n>executeAction}" icon="sap-icon://action"
+                press=".onExecuteAction" />
             <Button id="editButton" visible="{= ${app>/mode} === 'maintain' }"
                 text="{= ${ui>/editing} ? ${i18n>endEdit} : ${i18n>startEdit} }"
                 icon="{= ${ui>/editing} ? 'sap-icon://display' : 'sap-icon://edit' }"
