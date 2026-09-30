@@ -1,0 +1,4 @@
+@EndUserText.label: 'SuccessFactors Employee Service'
+define service ZUI_SF_EMPLOYEE {
+  expose ZI_SF_EMPLOYEE as Employee;
+}
