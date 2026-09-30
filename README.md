@@ -83,3 +83,8 @@ c_use_mock TYPE abap_bool VALUE abap_false,
 
 `pa-fiori/` contains a mock prototype of the ECC transactions PA20 (display) and PA30 (maintain)
 for infotypes 0000, 0001, 0002 and 0006. See `pa-fiori/README.md`.
+
+## EC org chart prototype
+
+`ec-orgchart/` contains a mock prototype of an Employee Central style organization chart
+(tree, unit details, employees, key date, search). See `ec-orgchart/README.md`.

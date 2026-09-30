@@ -1,0 +1,22 @@
+# Template - fill in the values of YOUR ABAP system, or generate this file in BAS with
+# "Fiori: Add Deployment Configuration" (same steps as for the SuccessFactors app).
+specVersion: "3.1"
+metadata:
+  name: zec.org
+type: application
+builder:
+  resources:
+    excludes:
+      - /test/**
+      - /localService/**
+  customTasks:
+    - name: deploy-to-abap
+      afterTask: generateCachebusterInfo
+      configuration:
+        target:
+          destination: <ABAP_DESTINATION_OR_SERVICE_KEY_NAME>   # e.g. the one created for the SF app
+        app:
+          name: ZEC_ORGCHART            # BSP application name (max 15 chars, must start with Z)
+          package: <YOUR_PACKAGE> # the package you created under ZLOCAL
+          description: Organization Chart (EC org chart prototype)
+          transport: <TRANSPORT_REQUEST_OR_leave_empty_for_local_package>

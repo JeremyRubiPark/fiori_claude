@@ -1,0 +1,89 @@
+<mvc:View
+    controllerName="zec.org.controller.OrgChart"
+    displayBlock="true"
+    height="100%"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:mvc="sap.ui.core.mvc">
+    <Page id="page" title="{i18n>appTitle}" enableScrolling="false">
+        <subHeader>
+            <OverflowToolbar>
+                <SearchField width="18rem" placeholder="{i18n>searchPlaceholder}" search=".onSearch" />
+                <Label text="{i18n>keyDate}" labelFor="keyDate" />
+                <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" value="{ui>/keyDate}"
+                    change=".onKeyDateChange" />
+                <ToolbarSpacer />
+                <Button text="{i18n>expandAll}" icon="sap-icon://expand-all" press=".onExpandAll" />
+                <Button text="{i18n>collapseAll}" icon="sap-icon://collapse-all" press=".onCollapseAll" />
+            </OverflowToolbar>
+        </subHeader>
+        <content>
+            <l:Splitter height="100%">
+                <ScrollContainer height="100%" vertical="true">
+                    <layoutData>
+                        <l:SplitterLayoutData size="38%" minSize="260" />
+                    </layoutData>
+                    <Tree id="tree" mode="SingleSelectMaster" selectionChange=".onSelect"
+                        noDataText="{i18n>noUnits}"
+                        items="{path: 'org>/nodes', parameters: {arrayNames: ['nodes']}}">
+                        <StandardTreeItem title="{org>name}"
+                            description="{= ${org>manager} ? ${i18n>manager} + ': ' + ${org>manager} : '' }"
+                            info="{org>total}"
+                            highlight="{= ${org>match} ? 'Information' : 'None' }" />
+                    </Tree>
+                </ScrollContainer>
+                <ScrollContainer height="100%" vertical="true">
+                    <VBox class="sapUiSmallMargin" visible="{= !${sel>/id} }">
+                        <Text text="{i18n>selectUnit}" />
+                    </VBox>
+                    <VBox class="sapUiSmallMargin" visible="{= !!${sel>/id} }">
+                        <Title text="{sel>/name} ({sel>/id})" level="H2" />
+                        <Text text="{sel>/pathText}" class="sapUiTinyMarginBottom" />
+                        <HBox wrap="Wrap" class="sapUiSmallMarginBottom">
+                            <VBox class="sapUiMediumMarginEnd">
+                                <ObjectStatus title="{i18n>manager}" text="{= ${sel>/managerName} || '-' }" />
+                                <ObjectStatus title="{i18n>validity}" text="{sel>/validityText}" />
+                            </VBox>
+                            <VBox>
+                                <ObjectStatus title="{i18n>headcountDirect}" text="{sel>/headcount}" />
+                                <ObjectStatus title="{i18n>headcountTotal}" text="{sel>/total}" />
+                                <ObjectStatus title="{i18n>subUnits}" text="{sel>/childCount}" />
+                            </VBox>
+                        </HBox>
+                        <Table items="{members>/rows}" noDataText="{i18n>noMembers}" width="auto">
+                            <headerToolbar>
+                                <OverflowToolbar>
+                                    <Title text="{i18n>members} ({= ${members>/rows}.length })" />
+                                    <ToolbarSpacer />
+                                    <Label text="{i18n>includeSub}" labelFor="includeSub" />
+                                    <Switch id="includeSub" state="{ui>/includeSub}" change=".onIncludeSubChange" />
+                                </OverflowToolbar>
+                            </headerToolbar>
+                            <columns>
+                                <Column width="3rem"><Text text="" /></Column>
+                                <Column><Text text="{i18n>pernr}" /></Column>
+                                <Column><Text text="{i18n>name}" /></Column>
+                                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>position}" /></Column>
+                                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>orgUnit}" /></Column>
+                                <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>entryDate}" /></Column>
+                            </columns>
+                            <items>
+                                <ColumnListItem>
+                                    <cells>
+                                        <core:Icon xmlns:core="sap.ui.core" src="sap-icon://manager"
+                                            visible="{members>isManager}" tooltip="{i18n>manager}" />
+                                        <Text text="{members>pernr}" />
+                                        <Text text="{members>name}" />
+                                        <Text text="{members>title}" />
+                                        <Text text="{members>orgName}" />
+                                        <Text text="{path: 'members>entryDate', formatter: '.formatter.fmtDate'}" />
+                                    </cells>
+                                </ColumnListItem>
+                            </items>
+                        </Table>
+                    </VBox>
+                </ScrollContainer>
+            </l:Splitter>
+        </content>
+    </Page>
+</mvc:View>

@@ -1,0 +1,22 @@
+{
+  "name": "zec-orgchart",
+  "version": "0.1.0",
+  "description": "Employee Central style organization chart (mock prototype)",
+  "private": true,
+  "scripts": {
+    "start": "fiori run --open index.html",
+    "start-local": "ui5 serve --open index.html",
+    "test": "node test/orglogic.test.js && node test/static-check.js",
+    "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist",
+    "deploy": "fiori deploy --config ui5-deploy.yaml"
+  },
+  "devDependencies": {
+    "@sap/ux-ui5-tooling": "^1",
+    "@ui5/cli": "^4"
+  },
+  "ui5": {
+    "dependencies": [
+      "@sap/ux-ui5-tooling"
+    ]
+  }
+}
