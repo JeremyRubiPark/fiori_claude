@@ -184,7 +184,7 @@ CLASS zcl_sf_employee_query IMPLEMENTATION.
         ENDIF.
 
         lo_request->set_uri_path( i_uri_path = c_uri_path ).
-        lo_request->set_query( i_query = lv_query ).
+        lo_request->set_query( query = lv_query ).
         lo_request->set_header_field( i_name = 'Accept' i_value = 'application/json' ).
 
         DATA(lo_response) = lo_client->execute( if_web_http_client=>get ).
