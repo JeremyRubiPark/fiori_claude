@@ -81,10 +81,10 @@
         "settings": {
           "bundleName": "zpa.hr.i18n.i18n",
           "supportedLocales": [
-            "",
+            "en",
             "ko"
           ],
-          "fallbackLocale": ""
+          "fallbackLocale": "en"
         }
       }
     },
