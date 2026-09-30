@@ -25,7 +25,7 @@ sap.ui.define([
             return (list || []).map(function (m) {
                 var params = (m.params || []).map(function (p, i) {
                     if (typeof p === "string" && PALogic.isIso(p)) {
-                        return p === PALogic.FOREVER ? p : formatter.fmtDate(p);
+                        return formatter.fmtDate(p);
                     }
                     var isField = i === 0 && /^(REQUIRED|INVALID_VALUE|INVALID_DATE|INVALID_NUMBER|TOO_LONG)$/.test(m.code);
                     return isField ? that.getText("f_" + p) : p;

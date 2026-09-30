@@ -230,7 +230,7 @@ sap.ui.define([
                 if (c.name === "subty") {
                     disp.subty = v ? IT.listText(def.subtypeList, v) + " (" + v + ")" : "";
                 } else if (c.date || (f && f.type === "date")) {
-                    disp[c.name] = v === PALogic.FOREVER ? v : formatter.fmtDate(v);
+                    disp[c.name] = formatter.fmtDate(v);
                 } else if (f && f.type === "select") {
                     disp[c.name] = v ? IT.listText(f.list, v) + " (" + v + ")" : "";
                 } else {
@@ -325,9 +325,9 @@ sap.ui.define([
                 }));
             }
             form.addContent(label("begda", true));
-            form.addContent(new DatePicker({ value: "{/begda}", valueFormat: "yyyy-MM-dd", enabled: !locked }));
+            form.addContent(new DatePicker({ value: "{/begda}", valueFormat: "yyyy-MM-dd", displayFormat: "yyyy.MM.dd", enabled: !locked }));
             form.addContent(label("endda", true));
-            form.addContent(new DatePicker({ value: "{/endda}", valueFormat: "yyyy-MM-dd", enabled: !locked }));
+            form.addContent(new DatePicker({ value: "{/endda}", valueFormat: "yyyy-MM-dd", displayFormat: "yyyy.MM.dd", enabled: !locked }));
             def.fields.forEach(function (f) {
                 form.addContent(label(f.name, f.required));
                 if (f.type === "select") {
@@ -339,7 +339,7 @@ sap.ui.define([
                     }
                     form.addContent(new Select({ selectedKey: "{/" + f.name + "}", items: items, forceSelection: false }));
                 } else if (f.type === "date") {
-                    form.addContent(new DatePicker({ value: "{/" + f.name + "}", valueFormat: "yyyy-MM-dd" }));
+                    form.addContent(new DatePicker({ value: "{/" + f.name + "}", valueFormat: "yyyy-MM-dd", displayFormat: "yyyy.MM.dd" }));
                 } else {
                     form.addContent(new Input({
                         value: "{/" + f.name + "}",
@@ -402,7 +402,7 @@ sap.ui.define([
                     layout: "ResponsiveGridLayout",
                     content: [
                         new Label({ text: this.getText("f_endda"), required: true }),
-                        new DatePicker({ value: "{/endda}", valueFormat: "yyyy-MM-dd" })
+                        new DatePicker({ value: "{/endda}", valueFormat: "yyyy-MM-dd", displayFormat: "yyyy.MM.dd" })
                     ]
                 })],
                 beginButton: new Button({
@@ -435,7 +435,7 @@ sap.ui.define([
             if (!rec) {
                 return;
             }
-            MessageBox.confirm(this.getText("confirmDelete", [formatter.fmtDate(rec.begda), rec.endda === PALogic.FOREVER ? rec.endda : formatter.fmtDate(rec.endda)]), {
+            MessageBox.confirm(this.getText("confirmDelete", [formatter.fmtDate(rec.begda), formatter.fmtDate(rec.endda)]), {
                 actions: [MessageBox.Action.DELETE, MessageBox.Action.CANCEL],
                 emphasizedAction: MessageBox.Action.DELETE,
                 onClose: function (action) {

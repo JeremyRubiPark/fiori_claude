@@ -11,7 +11,7 @@
             <OverflowToolbar>
                 <SearchField width="18rem" placeholder="{i18n>searchPlaceholder}" search=".onSearch" />
                 <Label text="{i18n>keyDate}" labelFor="keyDate" />
-                <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" value="{ui>/keyDate}"
+                <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" displayFormat="yyyy.MM.dd" value="{ui>/keyDate}"
                     change=".onKeyDateChange" />
                 <ToolbarSpacer />
                 <Button text="{i18n>expandAll}" icon="sap-icon://expand-all" press=".onExpandAll" />

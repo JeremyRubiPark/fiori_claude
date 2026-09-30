@@ -22,7 +22,7 @@
                         <Label text="{i18n>name}" visible="{= !${act>/isHire} }" />
                         <Text text="{act>/empName}" visible="{= !${act>/isHire} }" />
                         <Label text="{i18n>f_begda}" required="true" />
-                        <DatePicker id="begda" valueFormat="yyyy-MM-dd" value="{act>/begda}" />
+                        <DatePicker id="begda" valueFormat="yyyy-MM-dd" displayFormat="yyyy.MM.dd" value="{act>/begda}" />
                         <Label text="{i18n>f_massg}" />
                         <Select id="massg" selectedKey="{act>/massg}" items="{act>/reasonList}">
                             <core:Item key="{act>key}" text="{act>text}" />

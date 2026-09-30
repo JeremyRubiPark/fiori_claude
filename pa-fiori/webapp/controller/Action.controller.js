@@ -121,7 +121,7 @@ sap.ui.define([
                     }
                     form.addContent(new Select({ selectedKey: "{" + prefix + f.name + "}", items: items, forceSelection: false }));
                 } else if (f.type === "date") {
-                    form.addContent(new DatePicker({ value: "{" + prefix + f.name + "}", valueFormat: "yyyy-MM-dd" }));
+                    form.addContent(new DatePicker({ value: "{" + prefix + f.name + "}", valueFormat: "yyyy-MM-dd", displayFormat: "yyyy.MM.dd" }));
                 } else {
                     form.addContent(new Input({
                         value: "{" + prefix + f.name + "}",

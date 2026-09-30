@@ -74,7 +74,7 @@ sap.ui.define([
             }
             unit.pathText = unit.path.join(" > ");
             unit.validityText = formatter.fmtDate(unit.begda) + " - " +
-                (unit.endda === OrgLogic.FOREVER ? unit.endda : formatter.fmtDate(unit.endda));
+                formatter.fmtDate(unit.endda);
             this.getView().getModel("sel").setData(unit);
             this._loadMembers();
         },

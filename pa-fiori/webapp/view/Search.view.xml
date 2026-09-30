@@ -21,7 +21,7 @@
                         </items>
                     </SegmentedButton>
                     <Label text="{i18n>keyDate}" />
-                    <DatePicker id="keyDate" valueFormat="yyyy-MM-dd" value="{filter>/keyDate}" />
+                    <DatePicker id="keyDate" valueFormat="yyyy-MM-dd" displayFormat="yyyy.MM.dd" value="{filter>/keyDate}" />
                     <Label text="{i18n>pernr}" />
                     <Input id="pernr" value="{filter>/pernr}" maxLength="8" submit=".onSearch" />
                     <Label text="{i18n>name}" />

@@ -8,7 +8,7 @@
         title="{= ${app>/mode} === 'maintain' ? ${i18n>appTitleMaintain} : ${i18n>appTitleDisplay} }">
         <headerContent>
             <Label text="{i18n>keyDate}" labelFor="keyDate" />
-            <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" value="{ui>/keyDate}"
+            <DatePicker id="keyDate" width="10rem" valueFormat="yyyy-MM-dd" displayFormat="yyyy.MM.dd" value="{ui>/keyDate}"
                 change=".onKeyDateChange" />
             <ToolbarSpacer />
             <Button id="actionButton" text="{i18n>executeAction}" icon="sap-icon://action"
