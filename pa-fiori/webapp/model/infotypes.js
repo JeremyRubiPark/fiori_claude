@@ -192,6 +192,40 @@ sap.ui.define([], function () {
         }
     ];
 
+    /**
+     * Personnel actions (PA40). An action always writes an infotype 0000 record
+     * (massn, massg, stat2) and then the infotypes of its "info group" (steps), all with
+     * the action date as start date. All steps succeed or none is saved.
+     *
+     *   newEmployee: a new personnel number is created (hiring)
+     *   stat2:       employment status written to 0000 ("" = keep the current one)
+     *   steps:       infotypes the user has to / may maintain as part of the action
+     *
+     * Action 03 "Change in pay" is not offered because it needs infotype 0008, which is
+     * outside the scope of this prototype.
+     */
+    var ACTIONS = [
+        { id: "01", newEmployee: true, stat2: "3", steps: ["0002", "0001", "0006"] },
+        { id: "02", newEmployee: false, stat2: "", steps: ["0001"] },
+        { id: "10", newEmployee: false, stat2: "0", steps: [] }
+    ];
+
+    /** default values for the steps of a hiring (no existing record to copy from) */
+    var HIRE_DEFAULTS = {
+        "0001": { bukrs: "1000", werks: "1000", btrtl: "0001", persg: "1", persk: "K1", abkrs: "K1" },
+        "0002": { sprsl: "KO", natio: "KR", anzkd: 0 },
+        "0006": { subty: "1", land1: "KR" }
+    };
+
+    function getAction(id) {
+        for (var i = 0; i < ACTIONS.length; i++) {
+            if (ACTIONS[i].id === id) {
+                return ACTIONS[i];
+            }
+        }
+        return null;
+    }
+
     function getInfotype(id) {
         for (var i = 0; i < INFOTYPES.length; i++) {
             if (INFOTYPES[i].id === id) {
@@ -220,6 +254,9 @@ sap.ui.define([], function () {
     return {
         FOREVER: FOREVER,
         INFOTYPES: INFOTYPES,
+        ACTIONS: ACTIONS,
+        HIRE_DEFAULTS: HIRE_DEFAULTS,
+        getAction: getAction,
         get: getInfotype,
         listItems: listItems,
         listText: listText

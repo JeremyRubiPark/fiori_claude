@@ -270,17 +270,13 @@ sap.ui.define([
 
         // ------------------------------------------------------------- messages
         _messages: function (list) {
-            var that = this;
-            return (list || []).map(function (m) {
-                var params = (m.params || []).map(function (p, i) {
-                    if (typeof p === "string" && PALogic.isIso(p)) {
-                        return p === PALogic.FOREVER ? p : formatter.fmtDate(p);
-                    }
-                    var isField = i === 0 && /^(REQUIRED|INVALID_VALUE|INVALID_DATE|INVALID_NUMBER|TOO_LONG)$/.test(m.code);
-                    return isField ? that.getText("f_" + p) : p;
-                });
-                return that.getText("msg_" + m.code, params);
-            });
+            return this.translateMessages(list);
+        },
+
+        onExecuteAction: function () {
+            var pernr = this._pernr;
+            this._release();
+            this.getRouter().navTo("action", { pernr: pernr });
         },
 
         // ------------------------------------------------------------- create / copy / change

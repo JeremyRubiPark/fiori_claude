@@ -27,6 +27,7 @@ Browser (this app)  --HTTPS-->  BTP Destination (Cloud Connector)  -->  ECC Gate
 |---|---|---|---|
 | `EmployeeSet` | Pernr, KeyDate | search + header | `searchEmployees`, `getEmployee` |
 | `InfotypeRecordSet` | Pernr, Infty, Subty, Objps, Sprps, Endda, Begda, Seqnr | one row per infotype record; generic field bag or typed entities per infotype | `getRecords`, `getRecord`, `create`, `change`, `delimit`, `remove` |
+| `ActionSet` (function import `ExecuteAction`) | Massn, Pernr, Begda, Massg + infotype payloads | atomic personnel action; one call, one commit/rollback | `executeAction`, `actionDefaults` |
 | `LockSet` | Pernr | enqueue / dequeue | `lock`, `unlock`, `getLock` |
 | `ValueHelp*Set` | Key, Text | customizing value helps | `infotypes.js` LISTS |
 
@@ -40,7 +41,8 @@ secure and validate than a generic field bag.
 | Read infotype | `HR_READ_INFOTYPE` | honors authorization via `P_PERNR` check inside? Verify; use `HR_CHECK_AUTHORITY_INFTY` explicitly |
 | Enqueue employee | `HR_EMPLOYEE_ENQUEUE` / `BAPI_EMPLOYEE_ENQUEUE` | dequeue with the matching DEQUEUE function |
 | Insert / change / delimit / delete | `HR_INFOTYPE_OPERATION` | operations INS, MOD, DEL, COP, LIS9; it applies the time-constraint logic of PA30. The mock in `PALogic.js` imitates this behaviour |
-| Personnel action (0000/0302) | PA40 logic, `HR_MAINTAIN_MASTERDATA` | infotype 0000 is read-only in the prototype because actions are normally executed with PA40 |
+| Personnel action (0000/0302) | PA40 logic, `HR_MAINTAIN_MASTERDATA` | infotype 0000 is read-only in the PA30 part of the prototype; actions run through `executeAction`. In ECC the action type determines the info group (T588D/T588Z, feature MNMAC, T529A/T529T, T530); the prototype hard-codes three actions in `infotypes.js` (`ACTIONS`) |
+| New personnel number | number range object `PREL` (`NUMBER_GET_NEXT`) or `HR_MAINTAIN_MASTERDATA` with an empty PERNR | the prototype takes max+1 |
 | Value helps | tables T529A/T530 (actions/reasons), T500P/T001P (areas), T503K (employee subgroup), T005 (countries), T591A (subtypes) | read through RFC or CDS-like Gateway read |
 
 ## 4. What to replace in the app
@@ -65,7 +67,7 @@ secure and validate than a generic field bag.
 
 ## 6. Known simplifications in the prototype
 
-* Infotype 0000 is display only; no action/reason dependency logic (T529A/T530 combinations).
+* Infotype 0000 is display only in PA30; the PA40 part supports three actions only, without action/reason dependency (T530) and without the status-dependent info group variants (feature MNMAC / T588Z dynamic actions).
 * No authorization objects except "0000 not maintainable"; no country-specific screens (MOLGA).
 * Only one fixed user (`DEMO_USER`) and a simulated lock by another user on personnel number 10000004.
 * No "lock release" UI and no change documents/history beyond "changed on / by".

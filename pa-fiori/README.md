@@ -6,6 +6,11 @@ Freestyle SAPUI5 app (sap.m, sap.uxap ObjectPageLayout) that imitates the two HR
 * **Maintain** (PA30): choose *Edit* (locks the employee), then **Create / Copy / Change / Delimit / Delete**
   records with the same time-constraint rules as SAP HR (TC1: no gaps/overlaps; TC2: per subtype).
 
+* **Personnel actions** (PA40): in maintain mode choose *Execute Action* (search page or employee page).
+  Hiring (01), Organizational reassignment (02) and Leaving (10) write the 0000 action record plus the
+  infotypes of the action's info group (hiring: 0002, 0001, 0006; reassignment: 0001) in one step.
+  If any step fails nothing is saved. Action 03 (change in pay) is not offered because it needs infotype 0008.
+
 Infotypes: 0000 Actions (display only), 0001 Organizational Assignment, 0002 Personal Data, 0006 Addresses.
 All data is in-memory sample data - no ECC connection. See `docs/ecc-integration.md` for the path to ECC.
 
@@ -33,6 +38,8 @@ Reload the page to reset the sample data.
 | Future hire | 10000006 | Key date today: closest record is shown |
 | TC1 insert | any | Create 0001 record with a begda in the middle of a period; previous record is delimited |
 | TC2 addresses | 10000001 | Delimit, overlap error, different subtypes side by side |
+| Hiring | new | Maintain mode -> Execute Action -> Hiring; fill 0002/0001/0006, a new personnel number is assigned; clear a required field to see that nothing is saved |
+| Reassignment / Leaving | 10000002 | Employee page -> Execute Action; leaving a leaver (10000005) or a locked employee (10000004) is rejected |
 | Delete TC1 | any | Previous record is stretched; last record cannot be deleted |
 
 ## Deploy to the ABAP environment (BTP Trial)
@@ -54,7 +61,7 @@ test/                       Node tests for PALogic and static checks
 
 ## Status
 
-* `PALogic.js`: 35 automated tests pass.
+* `PALogic.js`: 44 automated tests pass (incl. the atomic personnel actions).
 * XML/JSON/JS syntax and i18n key coverage are checked by `test/static-check.js`.
 * **The UI was not executed in the environment where it was written** (UI5 libraries could not be
   downloaded there). Expect to fix small runtime issues the first time you run `npm start`; report the

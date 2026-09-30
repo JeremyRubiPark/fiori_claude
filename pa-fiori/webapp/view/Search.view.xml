@@ -6,6 +6,10 @@
     xmlns:f="sap.ui.layout.form"
     xmlns:mvc="sap.ui.core.mvc">
     <Page id="page" title="{= ${app>/mode} === 'maintain' ? ${i18n>appTitleMaintain} : ${i18n>appTitleDisplay} }">
+        <headerContent>
+            <Button text="{i18n>executeAction}" icon="sap-icon://action"
+                visible="{= ${app>/mode} === 'maintain' }" press=".onExecuteAction" />
+        </headerContent>
         <content>
             <f:SimpleForm editable="true" layout="ResponsiveGridLayout" columnsL="3" columnsM="2"
                 labelSpanL="4" labelSpanM="4" singleContainerFullSize="false">

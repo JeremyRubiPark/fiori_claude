@@ -302,6 +302,93 @@ test("copy defaults start after the existing record and run to 9999-12-31", () =
     assert.strictEqual(d.stras, cur.stras);
 });
 
+console.log("personnel actions (PA40)");
+function hireInput(over) {
+    const d = PA.actionDefaults("01", null, "2026-11-01");
+    d.steps["0001"].orgeh = "50000020"; d.steps["0001"].plans = "60000201";
+    d.steps["0002"].nachn = "Lee"; d.steps["0002"].vorna = "Minjun";
+    d.steps["0002"].gbdat = "1999-02-02"; d.steps["0002"].gesch = "1";
+    d.steps["0006"].stras = "1 Sample-ro"; d.steps["0006"].ort01 = "Seoul";
+    return Object.assign({ massn: "01", massg: "01", begda: "2026-11-01", steps: d.steps }, over || {});
+}
+test("hiring creates a new employee with all infotypes", () => {
+    const r = PA.executeAction(hireInput());
+    assert.ok(r.ok, JSON.stringify(r));
+    assert.strictEqual(r.pernr, "10000007");
+    const e = PA.getEmployee(r.pernr, "2026-11-01");
+    assert.strictEqual(e.fullName, "Lee Minjun");
+    assert.strictEqual(e.status, "3");
+    ["0000", "0001", "0002", "0006"].forEach(i =>
+        assert.strictEqual(PA.getRecords(r.pernr, i, { period: "all" }).length, 1, i));
+    assert.strictEqual(PA.getLock(r.pernr), "");
+    assert.ok(mcodes(r).includes("ACTION_DONE"));
+    checkConsistency(r.pernr);
+});
+test("hiring is atomic: invalid step saves nothing", () => {
+    const inp = hireInput();
+    inp.steps["0006"].stras = "";
+    const before = PA.searchEmployees({}, "2026-11-01").length;
+    const r = PA.executeAction(inp);
+    assert.ok(!r.ok);
+    assert.strictEqual(r.errors[0].infty, "0006");
+    assert.deepStrictEqual(codes(r), ["REQUIRED"]);
+    assert.strictEqual(PA.searchEmployees({}, "2026-11-01").length, before);
+    assert.strictEqual(PA.getEmployee("10000007", "2026-11-01"), null);
+    assert.strictEqual(PA.getRecords("10000007", "0000", { period: "all" }).length, 0);
+    // numbering is not burned by the failed attempt
+    assert.strictEqual(PA.executeAction(hireInput()).pernr, "10000007");
+});
+test("org reassignment writes 0000 and a new 0001 record", () => {
+    const d = PA.actionDefaults("02", "10000002", "2026-11-01");
+    assert.strictEqual(d.steps["0001"].orgeh, "50000020");
+    d.steps["0001"].orgeh = "50000030"; d.steps["0001"].plans = "60000301";
+    const r = PA.executeAction({ massn: "02", massg: "02", pernr: "10000002", begda: "2026-11-01", steps: d.steps });
+    assert.ok(r.ok, JSON.stringify(r));
+    const p0 = PA.getRecords("10000002", "0000", { period: "all" });
+    assert.strictEqual(p0.length, 2);
+    assert.strictEqual(p0[0].massn, "02");
+    assert.strictEqual(p0[0].stat2, "3");
+    assert.strictEqual(PA.getEmployee("10000002", "2026-11-01").orgeh, "50000030");
+    assert.strictEqual(PA.getEmployee("10000002", "2026-10-31").orgeh, "50000020");
+    assert.strictEqual(PA.getLock("10000002"), "");
+    checkConsistency("10000002");
+});
+test("leaving sets the status to withdrawn from the action date", () => {
+    const r = PA.executeAction({ massn: "10", massg: "10", pernr: "10000002", begda: "2026-12-31", steps: {} });
+    assert.ok(r.ok, JSON.stringify(r));
+    assert.strictEqual(PA.getEmployee("10000002", "2026-12-30").status, "3");
+    assert.strictEqual(PA.getEmployee("10000002", "2026-12-31").status, "0");
+    checkConsistency("10000002");
+});
+test("actions on a leaver are rejected", () => {
+    const r = PA.executeAction({ massn: "10", massg: "10", pernr: "10000005", begda: "2026-10-01", steps: {} });
+    assert.deepStrictEqual(codes(r), ["NOT_ACTIVE"]);
+});
+test("locked employee cannot be processed and stays unchanged", () => {
+    const r = PA.executeAction({ massn: "10", massg: "10", pernr: "10000004", begda: "2026-12-31", steps: {} });
+    assert.deepStrictEqual(codes(r), ["LOCKED"]);
+    assert.strictEqual(PA.getLock("10000004"), "HRADMIN2");
+    assert.strictEqual(PA.getRecords("10000004", "0000", { period: "all" }).length, 1);
+});
+test("same-day action is rejected as a whole", () => {
+    const d = PA.actionDefaults("02", "10000002", "2026-11-01");
+    assert.ok(PA.executeAction({ massn: "02", pernr: "10000002", begda: "2026-11-01", steps: d.steps }).ok);
+    const r = PA.executeAction({ massn: "10", massg: "10", pernr: "10000002", begda: "2026-11-01", steps: {} });
+    assert.deepStrictEqual(codes(r), ["SAME_START"]);
+    assert.strictEqual(PA.getEmployee("10000002", "2026-11-01").status, "3");
+});
+test("unknown action, bad date, unknown employee", () => {
+    assert.deepStrictEqual(codes(PA.executeAction({ massn: "99", begda: "2026-11-01" })), ["UNKNOWN_ACTION"]);
+    assert.deepStrictEqual(codes(PA.executeAction({ massn: "10", pernr: "10000002", begda: "x" })), ["INVALID_DATE"]);
+    assert.deepStrictEqual(codes(PA.executeAction({ massn: "10", pernr: "99999999", begda: "2026-11-01" })), ["EMPLOYEE_NOT_FOUND"]);
+});
+test("a lock held by the user before the action is kept", () => {
+    PA.lock("10000002");
+    const d = PA.actionDefaults("02", "10000002", "2026-11-01");
+    assert.ok(PA.executeAction({ massn: "02", pernr: "10000002", begda: "2026-11-01", steps: d.steps }).ok);
+    assert.strictEqual(PA.getLock("10000002"), PA.USER);
+});
+
 console.log("reset");
 test("reset restores the sample data", () => {
     PA.lock("10000001");

@@ -234,11 +234,11 @@ sap.ui.define(["./infotypes", "./MockData"], function (IT, MockData) {
         return !!def && def.maintain !== false;
     }
 
-    function checkEditable(pernr, infty) {
+    function checkEditable(pernr, infty, viaAction) {
         if (state.employees.indexOf(pernr) < 0) {
             return err("EMPLOYEE_NOT_FOUND", pernr);
         }
-        if (!canMaintain(infty)) {
+        if (!viaAction && !canMaintain(infty)) {
             return err("NO_AUTH_MAINTAIN", infty);
         }
         var by = getLock(pernr);
@@ -321,11 +321,16 @@ sap.ui.define(["./infotypes", "./MockData"], function (IT, MockData) {
      *   overlaps with later records are rejected.
      */
     function create(rec) {
+        return doCreate(rec, false);
+    }
+
+    /** viaAction: called by executeAction, which may also write infotype 0000 */
+    function doCreate(rec, viaAction) {
         var def = IT.get(rec.infty);
         if (!def) {
             return fail(err("UNKNOWN_INFOTYPE", rec.infty));
         }
-        var pre = checkEditable(rec.pernr, rec.infty);
+        var pre = checkEditable(rec.pernr, rec.infty, viaAction);
         if (pre) {
             return fail(pre);
         }
@@ -543,6 +548,144 @@ sap.ui.define(["./infotypes", "./MockData"], function (IT, MockData) {
         return c;
     }
 
+    // ------------------------------------------------------------------ personnel actions (PA40)
+    function nextPernr() {
+        var max = 10000000;
+        state.employees.forEach(function (p) {
+            if (+p > max) {
+                max = +p;
+            }
+        });
+        return String(max + 1);
+    }
+
+    function activeAt(pernr, date) {
+        var r = recsOf(pernr, "0000").filter(function (x) {
+            return validAt(x, date);
+        })[0];
+        return !!r && r.stat2 === "3";
+    }
+
+    /**
+     * Start values for the steps of an action: copies of the records valid on 'begda'
+     * for an existing employee, sample defaults for a hiring.
+     * Returns { steps: { "0001": {field: value, ...}, ... } } or null for an unknown action.
+     */
+    function actionDefaults(massn, pernr, begda) {
+        var action = IT.getAction(massn);
+        if (!action) {
+            return null;
+        }
+        var date = isIso(begda) ? begda : todayIso();
+        var steps = {};
+        action.steps.forEach(function (infty) {
+            var def = IT.get(infty);
+            var values = {};
+            var cur = action.newEmployee ? null : pick(pernr, infty, date);
+            if (cur) {
+                def.fields.forEach(function (f) {
+                    values[f.name] = cur[f.name];
+                });
+                if (def.subtypeList) {
+                    values.subty = cur.subty;
+                }
+            } else {
+                values = JSON.parse(JSON.stringify((IT.HIRE_DEFAULTS || {})[infty] || {}));
+            }
+            steps[infty] = values;
+        });
+        return { steps: steps };
+    }
+
+    /**
+     * Executes a personnel action atomically.
+     * input: { massn, massg, pernr (not for hiring), begda, steps: { infty: {field: value} } }
+     * Success: { ok: true, pernr, messages } - nothing is saved when any step fails:
+     * then { ok: false, errors: [ { code, params, infty } ] } and the data is unchanged.
+     */
+    function executeAction(input) {
+        var action = IT.getAction(input.massn);
+        if (!action) {
+            return fail(err("UNKNOWN_ACTION", input.massn));
+        }
+        if (!isIso(input.begda)) {
+            return fail(err("INVALID_DATE", "begda"));
+        }
+        var begda = input.begda;
+        var pernr = input.pernr;
+        if (!action.newEmployee) {
+            if (state.employees.indexOf(pernr) < 0) {
+                return fail(err("EMPLOYEE_NOT_FOUND", pernr));
+            }
+            if (!activeAt(pernr, begda)) {
+                return fail(err("NOT_ACTIVE", pernr));
+            }
+        }
+
+        var snapshot = JSON.stringify({
+            employees: state.employees,
+            records: state.records,
+            locks: state.locks,
+            nextId: state.nextId
+        });
+        function rollback() {
+            var s = JSON.parse(snapshot);
+            state.employees = s.employees;
+            state.records = s.records;
+            state.locks = s.locks;
+            state.nextId = s.nextId;
+        }
+        function abort(errors, infty) {
+            rollback();
+            return {
+                ok: false,
+                errors: errors.map(function (e) {
+                    return { code: e.code, params: e.params, infty: infty };
+                })
+            };
+        }
+
+        if (action.newEmployee) {
+            pernr = nextPernr();
+            state.employees.push(pernr);
+        }
+        var hadLock = getLock(pernr) === USER;
+        var lockRes = lock(pernr);
+        if (!lockRes.ok) {
+            return abort(lockRes.errors, "");
+        }
+
+        var stat2 = action.stat2;
+        if (!stat2) {
+            var cur0 = recsOf(pernr, "0000").filter(function (x) {
+                return validAt(x, begda);
+            })[0];
+            stat2 = cur0 ? cur0.stat2 : "3";
+        }
+        var messages = [];
+        var seq = [{ infty: "0000", values: { massn: input.massn, massg: input.massg || "", stat2: stat2 } }];
+        action.steps.forEach(function (infty) {
+            seq.push({ infty: infty, values: (input.steps || {})[infty] || {} });
+        });
+
+        for (var i = 0; i < seq.length; i++) {
+            var rec = { pernr: pernr, infty: seq[i].infty, begda: begda, endda: FOREVER };
+            Object.keys(seq[i].values).forEach(function (k) {
+                rec[k] = seq[i].values[k];
+            });
+            var res = doCreate(rec, true);
+            if (!res.ok) {
+                return abort(res.errors, seq[i].infty);
+            }
+            messages = messages.concat(res.messages);
+        }
+        if (!hadLock) {
+            delete state.locks[pernr];
+        }
+        messages.push(err("ACTION_DONE", IT.listText("massn", input.massn), pernr, begda));
+        return { ok: true, pernr: pernr, messages: messages };
+    }
+
     function setToday(iso) {
         fixedToday = iso;
     }
@@ -569,6 +712,8 @@ sap.ui.define(["./infotypes", "./MockData"], function (IT, MockData) {
         change: change,
         delimit: delimit,
         remove: remove,
-        copyDefaults: copyDefaults
+        copyDefaults: copyDefaults,
+        actionDefaults: actionDefaults,
+        executeAction: executeAction
     };
 });

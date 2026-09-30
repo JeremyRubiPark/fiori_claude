@@ -39,6 +39,10 @@ sap.ui.define([
             this.onSearch();
         },
 
+        onExecuteAction: function () {
+            this.getRouter().navTo("action");
+        },
+
         onPressEmployee: function (oEvent) {
             var ctx = oEvent.getSource().getBindingContext("results");
             this.getRouter().navTo("employee", { pernr: ctx.getProperty("pernr") });

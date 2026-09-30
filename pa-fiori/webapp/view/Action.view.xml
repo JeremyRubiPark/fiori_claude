@@ -1,0 +1,44 @@
+<mvc:View
+    controllerName="zpa.hr.controller.Action"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:f="sap.ui.layout.form"
+    xmlns:mvc="sap.ui.core.mvc">
+    <Page id="page" showNavButton="true" navButtonPress=".onNavBack" title="{i18n>actionTitle}">
+        <content>
+            <Panel headerText="{i18n>actionData}" class="sapUiResponsiveMargin" width="auto">
+                <f:SimpleForm editable="true" layout="ResponsiveGridLayout" labelSpanL="3" labelSpanM="3"
+                    columnsL="1" columnsM="1">
+                    <f:content>
+                        <Label text="{i18n>f_massn}" required="true" />
+                        <Select id="massn" selectedKey="{act>/massn}" items="{act>/actionList}"
+                            change=".onActionChange">
+                            <core:Item key="{act>key}" text="{act>text}" />
+                        </Select>
+                        <Label text="{i18n>pernr}" required="{= !${act>/isHire} }" />
+                        <Input id="pernr" value="{act>/pernr}" maxLength="8" enabled="{= !${act>/isHire} }"
+                            placeholder="{= ${act>/isHire} ? ${i18n>newEmployee} : '' }"
+                            change=".onPernrChange" />
+                        <Label text="{i18n>name}" visible="{= !${act>/isHire} }" />
+                        <Text text="{act>/empName}" visible="{= !${act>/isHire} }" />
+                        <Label text="{i18n>f_begda}" required="true" />
+                        <DatePicker id="begda" valueFormat="yyyy-MM-dd" value="{act>/begda}" />
+                        <Label text="{i18n>f_massg}" />
+                        <Select id="massg" selectedKey="{act>/massg}" items="{act>/reasonList}">
+                            <core:Item key="{act>key}" text="{act>text}" />
+                        </Select>
+                    </f:content>
+                </f:SimpleForm>
+            </Panel>
+            <Text text="{i18n>noStepsHint}" visible="{= !${act>/hasSteps} }" class="sapUiResponsiveMargin" />
+            <VBox id="steps" />
+        </content>
+        <footer>
+            <OverflowToolbar>
+                <ToolbarSpacer />
+                <Button text="{i18n>execute}" type="Emphasized" press=".onExecute" />
+                <Button text="{i18n>cancel}" press=".onNavBack" />
+            </OverflowToolbar>
+        </footer>
+    </Page>
+</mvc:View>

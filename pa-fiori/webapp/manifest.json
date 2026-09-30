@@ -4,7 +4,9 @@
     "id": "zpa.hr",
     "type": "application",
     "i18n": "i18n/i18n.properties",
-    "applicationVersion": { "version": "0.1.0" },
+    "applicationVersion": {
+      "version": "0.1.0"
+    },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
     "crossNavigation": {
@@ -15,7 +17,12 @@
           "title": "{{appTitleDisplay}}",
           "signature": {
             "parameters": {
-              "mode": { "defaultValue": { "value": "display" }, "required": false }
+              "mode": {
+                "defaultValue": {
+                  "value": "display"
+                },
+                "required": false
+              }
             },
             "additionalParameters": "allowed"
           }
@@ -26,7 +33,12 @@
           "title": "{{appTitleMaintain}}",
           "signature": {
             "parameters": {
-              "mode": { "defaultValue": { "value": "maintain" }, "required": false }
+              "mode": {
+                "defaultValue": {
+                  "value": "maintain"
+                },
+                "required": false
+              }
             },
             "additionalParameters": "allowed"
           }
@@ -36,7 +48,11 @@
   },
   "sap.ui": {
     "technology": "UI5",
-    "deviceTypes": { "desktop": true, "tablet": true, "phone": true }
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
   },
   "sap.ui5": {
     "flexEnabled": false,
@@ -55,13 +71,19 @@
         "sap.uxap": {}
       }
     },
-    "contentDensities": { "compact": true, "cozy": true },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
     "models": {
       "i18n": {
         "type": "sap.ui.model.resource.ResourceModel",
         "settings": {
           "bundleName": "zpa.hr.i18n.i18n",
-          "supportedLocales": ["", "ko"],
+          "supportedLocales": [
+            "",
+            "ko"
+          ],
           "fallbackLocale": ""
         }
       }
@@ -78,12 +100,38 @@
         "async": true
       },
       "routes": [
-        { "pattern": "", "name": "search", "target": "search" },
-        { "pattern": "employee/{pernr}", "name": "employee", "target": "employee" }
+        {
+          "pattern": "",
+          "name": "search",
+          "target": "search"
+        },
+        {
+          "pattern": "employee/{pernr}",
+          "name": "employee",
+          "target": "employee"
+        },
+        {
+          "pattern": "action/:pernr:",
+          "name": "action",
+          "target": "action"
+        }
       ],
       "targets": {
-        "search": { "viewName": "Search", "viewId": "search", "viewLevel": 1 },
-        "employee": { "viewName": "Employee", "viewId": "employee", "viewLevel": 2 }
+        "search": {
+          "viewName": "Search",
+          "viewId": "search",
+          "viewLevel": 1
+        },
+        "employee": {
+          "viewName": "Employee",
+          "viewId": "employee",
+          "viewLevel": 2
+        },
+        "action": {
+          "viewName": "Action",
+          "viewId": "action",
+          "viewLevel": 3
+        }
       }
     }
   }
