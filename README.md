@@ -78,10 +78,10 @@ c_use_mock TYPE abap_bool VALUE abap_false,
 
 ## PA20 / PA30 prototype
 
-`pa-fiori/` contains a mock prototype of the ECC transactions PA20 (display) and PA30 (maintain)
-for infotypes 0000, 0001, 0002 and 0006. See `pa-fiori/README.md`.
+`pa-fiori/` 에는 인포타입(Infotype) 0000, 0001, 0002, 0006에 대한 ECC 트랜잭션 PA20(조회) 및 PA30(유지보수)의 목업 프로토타입이 포함되어 있습니다.
+자세한 내용은 `pa-fiori/README.md` 를 참조하세요.
 
 ## EC org chart prototype
 
-`ec-orgchart/` contains a mock prototype of an Employee Central style organization chart
-(tree, unit details, employees, key date, search). See `ec-orgchart/README.md`.
+`ec-orgchart/` 에는 Employee Central 스타일의 조직도(트리 구조, 부서별 상세 정보, 직원 목록, 기준일, 검색 기능) 목업 프로토타입이 포함되어 있습니다.
+자세한 내용은 `ec-orgchart/README.md` 를 참조하세요.
