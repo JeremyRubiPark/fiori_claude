@@ -21,7 +21,7 @@ SAP Business Application Studio (또는 local Node 18+ 환경):
 ```bash
 npm install
 npm start          # http://localhost:8080/index.html
-npm test           # 로직 테스트 (Node) + 정적 검
+npm test           # 로직 테스트 (Node) + 정적 검사
 ```
 
 검색 페이지의 모드 버튼을 사용하여 조회 모드와 유지보수 모드 간을 전환하거나, `index.html?mode=maintain` 또는 Launchpad 타일 파라미터 `mode=maintain` 을 사용하여 시작할 수 있습니다.
