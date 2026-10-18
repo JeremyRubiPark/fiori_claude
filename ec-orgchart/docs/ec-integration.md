@@ -25,8 +25,8 @@
 | 앱 개념 | EC 내 후보 엔티티 | 비고 |
 |---|---|---|
 | 조직 단위 | Foundation Objects `FODepartment`, `FODivision`, `FOBusinessUnit` (or `Position`-based structure) | Foundation Object는 유효 시작/종료일(Effective-dated)이 관리되는 데이터입니다. 상위(Parent) 참조 관계를 통해 계층 구조를 형성합니다. 어떤 FO 유형으로 조직 트리를 구성할지는 고객사별로 다릅니다. |
-| 부서장 | FO 엔티티 상의 부서장 정보 필드, 또는 부서원들의 `EmpJob` 상의 매니저(Manager) 필드 | 고객사의 데이터 모델링 방식에 따라 다릅니다. |
-| 직원 및 부서 할당 | `EmpJob` (사용자 ID, 부서, 직책, 시작/종료일, 관리자 등) | 유효 기준일 데이터입니다. 입력받은 기준일(Key date)에 유효한 레코드를 사용합니다. |
+| 부서장 | FO 엔티티 상의 부서장 정보 필드, 또는 부서원들의 `EmpJob` 상의 부서장(Manager) 필드 | 고객사의 데이터 모델링 방식에 따라 다릅니다. |
+| 직원 및 부서 할당 | `EmpJob` (사용자 ID, 부서, 직책, 시작/종료일, 부서장 등) | 유효 기준일 데이터입니다. 입력받은 기준일(Key date)에 유효한 레코드를 사용합니다. |
 | 직원 이름 | `PerPersonal` / `User` | 현재 유효한 레코드의 이름 정보입니다. |
 | 포지션 기반 조직도 | 상위 포지션과 관계있는 `Position` | 포지션 관리만 사용될 때 |
 
