@@ -4,7 +4,7 @@
 시스템을 실운영 환경으로 전환하려면, SuccessFactors OData API를 기반으로 이 세 함수를 다시 구현하되 기존 함수의 반환 데이터 구조(Shape)를 유지하면 됩니다.
 이렇게 하면 뷰(View)와 컨트롤러(Controller)를 수정 없이 그대로 사용할 수 있습니다.
 
-> Status: 상태: 여기에 기재된 내용은 SuccessFactors 테넌트(Tenant)를 대상으로 실제로 실행된 적이 없습니다(접근 가능한 환경이 없었음).
+> 상태: 여기에 기재된 내용은 SuccessFactors 테넌트(Tenant)를 대상으로 실제로 실행된 적이 없습니다(접근 가능한 환경이 없었음).
 > 아래의 엔티티 및 필드 이름은 **Employee Central의 일반적인 지식을 바탕으로 제안된 후보군** 입니다.
 > 구현하기 전에 테넌트의 *API Center > OData API Data Dictionary* 에서 모든 이름을 반드시 확인하십시오. 필드 제공 여부는 테넌트 구성에 따라 다를 수 있습니다.
 
