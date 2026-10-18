@@ -9,9 +9,6 @@ Fiori elements 앱 ──OData V4──> RAP Service Binding ──> Custom Enti
                                                                └ (Communication Arrangement) ──HTTPS──> SuccessFactors /odata/v2/User
 ```
 
-> **중요**: 이 소스는 작성 환경에 ABAP 시스템이 없어 **컴파일/실행 테스트를 하지 못했습니다.**
-> ADT에 붙여넣은 뒤 Syntax check(Ctrl+F2)에서 나오는 오류는 릴리스 차이(메서드 시그니처 등)일 수 있으니 알려주시면 함께 고치겠습니다.
-
 ## 폴더 구성
 
 | 경로 | 내용 |
