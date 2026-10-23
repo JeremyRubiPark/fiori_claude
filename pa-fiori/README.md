@@ -1,64 +1,120 @@
-# PA20 / PA30 스타일 인사 마스터 데이터 - Fiori 프로토타입
+# PA20 · PA30 · PA40 → SAP Fiori 재구성
 
-두 가지 HR 트랜잭션을 모방한 프리스타일 SAPUI5 앱(sap.m, sap.uxap.ObjectPageLayout 사용):
+> SAPGUI 인사 마스터 트랜잭션 3종을, 시간 제약 규칙(Time Constraint)까지 그대로 살린 Fiori 앱으로 다시 설계했습니다.
 
-* **조회** (PA20): 직원을 검색하고, 특정 기준일(Key date) 또는 전체 기간에 유효한 인포타입 레코드를 표시합니다.
-* **유지보수** (PA30): *수정(Edit)*을 선택하면(해당 직원 레코드 잠금), SAP HR과 동일한 시간 제약 규칙(Time-Constraint Rules)을 적용하여
-                       레코드를 **생성 / 복사 / 변경 / 유효기간 한정(Delimit) / 삭제**합니다 (TC1: 공백/중복 불가, TC2: 서브타입별 적용).
+![조회 화면](screenshots/01-search.png)
 
-* **인사발령** (PA40): 검색 페이지 또는 직원 페이지(조회 모드에서도 가능)에서 *인사발령* 을 선택합니다.
-  채용(01), 조직 변경(02), 퇴사(10) 기능은 하나의 단계에서 0000(인사명령) 레코드와 해당 발령 정보 그룹(Info Group)의
-  인포타입(채용: 0002, 0001, 0006 / 조직 변경: 0001)을 함께 작성합니다.
-  어느 한 단계라도 실패하면 아무것도 저장되지 않습니다. 발령 코드 03(급여 변경)은 인포타입 0008이 필요하므로 제공되지 않습니다.
+| 항목 | 내용 |
+|---|---|
+| 대상 업무 | 인사 마스터 조회(PA20) · 유지보수(PA30) · 인사발령(PA40) |
+| 인포타입 | 0000 인사조치 · 0001 조직배정 · 0002 개인데이터 · 0006 주소 |
+| 기술 | SAPUI5 (freestyle, `sap.m`, `sap.uxap.ObjectPageLayout`), Horizon 테마, i18n(한/영) |
+| 실행 환경 | SAP Business Application Studio, BTP ABAP Environment(Trial)에 배포 가능 |
+| 품질 | 업무 로직 자동화 테스트 **44건 통과** + 정적 검사(XML/JSON/JS 구문, i18n 키 115개) |
+| 데이터 | 인메모리 샘플 데이터 (ECC 연동 설계는 [`docs/ecc-integration.md`](docs/ecc-integration.md)) |
 
-인포타입: 0000 인사명령(조회 전용), 0001 조직 할당, 0002 개인 데이터, 0006 주소.
-모든 데이터는 인메모리(In-memory) 샘플 데이터이며 ECC 연결은 없습니다. ECC로 연결하는 경로는 `docs/ecc-integration.md` 를 참조하세요.
+---
 
-## 실행
+## 1. 왜 만들었나
 
-SAP Business Application Studio (또는 local Node 18+ 환경):
+PA20/PA30/PA40은 HR 실무에서 가장 많이 쓰는 트랜잭션이지만, SAPGUI 화면은 다음 문제가 있습니다.
+
+- **인포타입마다 화면을 따로 열어야 함**: 한 직원의 조직·개인·주소 정보를 보려면 인포타입 번호를 바꿔가며 반복 조회
+- **이력 파악이 어려움**: 기준일을 바꿔 가며 레코드를 하나씩 확인해야 과거/미래 시점의 상태를 알 수 있음
+- **모바일·브라우저 접근 불가**: 현업 관리자는 SAPGUI 없이는 인사정보를 볼 수 없음
+
+이 앱은 **"SAP HR의 규칙은 그대로, 화면 경험만 Fiori로"**를 목표로 했습니다. 규칙을 단순화한 데모가 아니라, PA30에서 실제로 일어나는 레코드 분할·한정(Delimit)·중복 차단을 재현하는 것이 핵심입니다.
+
+## 2. 주요 기능
+
+### 조회 (PA20)
+- 사원번호 · 이름 · 조직단위로 검색, **기준일(Key date)** 기준 유효 레코드 표시
+- 한 화면(Object Page)에 4개 인포타입을 섹션으로 배치. 레코드 범위를 "기준일 유효 / 전체 이력"으로 전환
+
+![직원 상세](screenshots/02-employee.png)
+
+### 유지보수 (PA30)
+- **편집 시 직원 잠금(Enqueue)**: 다른 사용자가 잠근 직원은 수정 불가 메시지 표시
+- 레코드 **생성 / 복사 / 변경 / 유효기간 한정(Delimit) / 삭제**
+- 시간 제약 규칙 적용
+
+| 규칙 | 적용 인포타입 | 동작 |
+|---|---|---|
+| TC1 (공백·중복 불가) | 0001, 0002 | 기간 중간에 새 레코드를 넣으면 이전 레코드가 자동 한정됨. 삭제 시 이전 레코드가 연장됨. 마지막 레코드는 삭제 불가 |
+| TC2 (서브타입별, 중복 불가) | 0006 | 같은 주소 유형끼리만 중복 검사. 서로 다른 유형은 동시에 존재 가능 |
+| 조회 전용 | 0000 | PA30에서 직접 수정 불가. 인사발령을 통해서만 생성 |
+
+### 인사발령 (PA40)
+- 채용(01) · 조직변경(02) · 퇴사(10)
+- 발령 유형별 **Info Group**(채용: 0000 → 0002 → 0001 → 0006)을 한 화면에서 입력
+- **트랜잭션 처리**: 어느 한 인포타입이라도 검증에 실패하면 전체가 롤백되어 아무것도 저장되지 않음
+- 신규 채용 시 사원번호 자동 채번, 퇴사자·잠긴 직원에 대한 발령은 거부
+
+![인사발령 - 채용](screenshots/03-action-hire.png)
+
+![인사발령 - 실행 결과](screenshots/05-action-hire-success.png)
+
+## 3. 아키텍처
+
+```mermaid
+flowchart LR
+    subgraph UI["SAPUI5 앱"]
+        V["View (XML)<br/>Search · Employee · Action"]
+        C["Controller"]
+        M["infotypes.js<br/>인포타입 메타데이터"]
+    end
+    L["PALogic.js<br/>서비스 계층<br/>(TC 규칙 · 잠금 · 발령 트랜잭션)"]
+    D["MockData.js<br/>샘플 직원·레코드"]
+    E["ECC Gateway OData V2<br/>(HR_INFOTYPE_OPERATION 등)"]
+
+    V --> C --> L
+    M -. "화면 필드·섹션 생성" .-> V
+    L --> D
+    L -. "운영 전환 시 교체" .-> E
+```
+
+설계 포인트는 세 가지입니다.
+
+1. **메타데이터 기반 UI**: 인포타입의 필드·값 목록을 `infotypes.js`에 선언하고, 화면 섹션과 테이블은 이 정의로부터 생성합니다. 인포타입을 추가할 때 View를 새로 만들 필요가 없습니다.
+2. **서비스 계층 분리**: 컨트롤러는 데이터에 직접 접근하지 않고 `PALogic.js`만 호출합니다. 함수 시그니처(`{ok, errors:[{code, params}]}`)를 유지한 채 내부만 ECC OData 호출로 바꾸면 운영 전환이 됩니다.
+3. **ECC 표준 동작 모사**: `PALogic.js`의 생성·변경·한정·삭제 로직은 ECC의 `HR_INFOTYPE_OPERATION`이 수행하는 시간 제약 처리를 그대로 따르도록 설계했습니다. 실제 연동 시 백엔드 동작과 화면 기대값이 어긋나지 않게 하기 위함입니다.
+
+ECC 연동 설계(SEGW 엔티티 모델, 후보 FM/BAPI, 권한 P_ORGIN/P_PERNR, Cloud Connector + Principal Propagation)는 [`docs/ecc-integration.md`](docs/ecc-integration.md)에 정리했습니다.
+
+## 4. 검증
+
+`npm test`로 업무 로직 44건과 정적 검사를 실행합니다.
+
+| 시나리오 | 사원번호 | 확인 내용 |
+|---|---|---|
+| 일반 이력 | 10000001 | 기준일 2021-03-01로 과거 레코드 표시 |
+| 타 사용자 잠금 | 10000004 | 편집 시 "locked by HRADMIN2" |
+| 퇴사자 | 10000005 | 상태 Withdrawn, 마지막 0000 레코드 확인 |
+| 미래 입사자 | 10000006 | 오늘 기준 조회 시 가장 가까운 레코드 표시 |
+| TC1 삽입 · 삭제 | 임의 | 이전 레코드 자동 한정 / 연장, 마지막 레코드 삭제 차단 |
+| TC2 주소 | 10000001 | 동일 서브타입 중복 오류, 다른 서브타입 공존 |
+| 채용 롤백 | 신규 | 필수값 누락 시 0000~0006 모두 저장 안 됨 |
+
+## 5. 의도적으로 제외한 범위
+
+프로토타입이므로 아래는 단순화했습니다. 운영 적용 시 보완 대상입니다.
+
+- 발령 유형·사유 종속(T530), 동적 Info Group(피처 MNMAC, T588Z) 미구현 — 발령 3종 하드코딩
+- 급여 변경(03)은 인포타입 0008이 필요해 제외
+- 권한 오브젝트 체크, 국가별 화면(MOLGA) 미적용
+- 단일 사용자(`DEMO_USER`) 기준
+
+## 6. 실행
 
 ```bash
 npm install
-npm start          # http://localhost:8080/index.html
-npm test           # 로직 테스트 (Node) + 정적 검사
+npm start      # http://localhost:8080/index.html
+npm test       # 로직 테스트 + 정적 검사
 ```
 
-검색 페이지의 모드 버튼을 사용하여 조회 모드와 유지보수 모드 간을 전환하거나, `index.html?mode=maintain` 또는 Launchpad 타일 파라미터 `mode=maintain` 을 사용하여 시작할 수 있습니다.
-샘플 데이터를 초기화하려면 페이지를 새로고침하세요.
+유지보수 모드로 바로 시작: `index.html?mode=maintain`
+BTP ABAP 배포 절차는 [`docs/SETUP.md`](docs/SETUP.md) 참고.
 
-## 시나리오 테스트
+---
 
-| 시나리오 | 사원번호 | 확인사 |
-|---|---|---|
-| 일반 이력 (Normal history) | 10000001 | 여러 기간에 걸친 레코드 확인; 기준일을 2021-03-01 로 설정 |
-| 다른 사용자가 잠금 (Locked by other user) | 10000004 | 유지보수 모드 -> 수정(Edit) 클릭 시 "locked by HRADMIN2" 메시지 표시 |
-| 퇴사자 (Leaver) | 10000005 | 상태가 퇴사(Withdrawn)로 표시됨; 마지막 0000 레코드 확인 |
-| 미래 채용자 (Future hire) | 10000006 | 기준일을 오늘로 설정: 가장 가까운 날짜의 레코드가 표시됨 |
-| TC1 삽입 (TC1 insert) | 임의 사원 | 기간 중간의 시작일(begda)로 0001 레코드를 생성; 이전 레코드의 유효기간이 한정(Delimit)됨 |
-| TC2 주소 (TC2 addresses) | 10000001 | 유효기간 한정, 중복 오류, 서로 다른 서브타입이 나란히 존재하는지 확인 |
-| 채용 (Hiring) | 신규 (new) | 인사발령 -> 채용 선택; 0002/0001/0006을 입력하면 새 사원 번호가 부여됨; 필수 필드를 비워두어 아무것도 저장되지 않는지 확인 |
-| 조직 변경 / 퇴사 (Reassignment / Leaving) | 10000002 | 직원 페이지 -> 인사발령; 퇴사자(10000005)나 잠긴 직원(10000004)을 퇴사 처리하려고 하면 거부됨 |
-| TC1 삭제 (Delete TC1) | 임의 사원 | 이전 레코드의 기간이 연장됨; 마지막 레코드는 삭제할 수 없음 |
-
-## ABAP 환경에 배포 (BTP Trial)
-
-SuccessFactors 앱과 동일합니다: BAS에서 **Fiori: Add Deployment Configuration** 을 실행하거나 `ui5-deploy.yaml` 파일을 채운 후 `npm run deploy` 를 실행합니다.
-Trial 버전에는 Launchpad 롤(Role) 유지보수 기능이 없으므로 아래 URL을 통해 앱을 엽니다:
-`https://<abap-web-host>/sap/bc/ui5_ui5/sap/zpa_hr/index.html.`
-
-## 구조
-
-```
-webapp/model/infotypes.js   인포타입 메타데이터 + 샘플 코드 목록 (데이터 기반 UI)
-webapp/model/PALogic.js     서비스 계층 (ECC 연결 시 OData V2로 대체 가능)
-webapp/model/MockData.js    sample 직원 및 레코드
-webapp/view, controller     검색 및 직원 페이지 (섹션/테이블은 infotypes.js를 기반으로 생성됨)
-webapp/i18n                 영어 (기본값) 및 한국어
-test/                       PALogic에 대한 Node 테스트 및 정적 검사
-```
-
-## 상태
-
-* `PALogic.js`: 트랜잭션 단위의 인사발령을 포함하여 44개의 자동화 테스트를 통과했습니다.
-* XML/JSON/JS 구문 및 i18n 키 반영 여부는 `test/static-check.js` 를 통해 검사됩니다.
+**작성자** 박건희 · SAP HR(HCM) 컨설턴트/개발자

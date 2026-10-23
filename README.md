@@ -1,87 +1,100 @@
-# SuccessFactors 직원 조회 Fiori 앱 (BTP ABAP + RAP + Fiori elements)
+# SuccessFactors 직원 조회 — BTP ABAP · RAP · Fiori elements
 
-SAP BTP ABAP Environment의 RAP **Custom Entity**가 SuccessFactors OData V2 `User` 엔티티를 호출하고,
-Fiori elements(List Report + Object Page) 앱이 그 결과를 보여주는 구조입니다.
+> SuccessFactors 데이터를 복제하지 않고, BTP ABAP Environment에서 실시간으로 조회하는 Clean Core 방식의 side-by-side 확장 앱입니다.
 
-```
-Fiori elements 앱 ──OData V4──> RAP Service Binding ──> Custom Entity ZI_SF_EMPLOYEE
-                                                          └ Query Provider ZCL_SF_EMPLOYEE_QUERY
-                                                               └ (Communication Arrangement) ──HTTPS──> SuccessFactors /odata/v2/User
-```
+![직원 목록](Screenshots/01-list-report.png)
 
-## 폴더 구성
-
-| 경로 | 내용 |
+| 항목 | 내용 |
 |---|---|
-| `abap/zi_sf_employee.asddls` | Custom Entity (필드 + UI 애노테이션 포함) |
-| `abap/zcx_sf_employee_error.clas.abap` | 예외 클래스 (`CX_RAP_QUERY_PROVIDER`가 abstract라 구체 하위 클래스 필요) |
-| `abap/zcl_sf_employee_query.clas.abap` | Query Provider 클래스 (Mock/실제 SF 전환 스위치 포함) |
-| `abap/zui_sf_employee.srvd` | Service Definition |
-| `app/webapp/` | Fiori elements 앱 (`manifest.json`, `Component.js`, `i18n`, `index.html`) |
-| `app/package.json`, `ui5.yaml`, `ui5-deploy.yaml` | 로컬 실행/배포 설정 |
+| 대상 업무 | SuccessFactors 직원 정보 조회 (목록 · 상세) |
+| 백엔드 | SAP BTP ABAP Environment, ABAP Cloud, RAP **Custom Entity** + Query Provider |
+| 연동 | SuccessFactors OData V2 `User` 엔티티, Communication Scenario / Arrangement |
+| 프론트엔드 | SAP Fiori elements V4 (List Report + Object Page), CDS UI 애노테이션 |
+| 개발 도구 | ADT(Eclipse), SAP Business Application Studio, SAP Fiori tools |
+| 실행 모드 | Mock(샘플 8명, SF 테넌트 불필요) ↔ 실제 SF 연동, 상수 한 줄로 전환 |
 
-## 1단계 – Mock 모드로 먼저 동작 확인 (SF 테넌트 불필요)
+---
 
-`ZCL_SF_EMPLOYEE_QUERY`의 `c_use_mock`이 기본값 `abap_true`라서 샘플 직원 8명으로 동작합니다.
+## 1. 왜 이 구조인가
 
-1. **ADT**에서 ABAP Cloud Project(BTP 인스턴스) 연결 후 패키지 `ZSF_EMPLOYEE` 생성
-2. **예외 클래스 먼저**: 클래스 `ZCX_SF_EMPLOYEE_ERROR` 생성 → 소스를 `zcx_sf_employee_error.clas.abap` 내용으로 교체 후 Activate
-   (Superclass는 `CX_RAP_QUERY_PROVIDER`)
-3. 클래스 생성: `ZCL_SF_EMPLOYEE_QUERY` → 소스를 `zcl_sf_employee_query.clas.abap` 내용으로 교체 후 Activate
-   (Custom Entity가 클래스를 참조하고 클래스가 엔티티를 참조하므로, 처음엔 **빈 클래스(IF_RAP_QUERY_PROVIDER 구현)를 먼저 만들고**, 엔티티를 activate한 뒤 클래스 소스를 채우는 순서가 안전합니다.)
-4. Data Definition → *Custom Entity* 로 `ZI_SF_EMPLOYEE` 생성 → `zi_sf_employee.asddls` 내용 붙여넣고 Activate
-5. Service Definition `ZUI_SF_EMPLOYEE` 생성 → `zui_sf_employee.srvd` 내용 붙여넣고 Activate
-6. Service Binding `ZUI_SF_EMPLOYEE_O4` 생성 (Binding Type: **OData V4 – UI**, Service Definition: `ZUI_SF_EMPLOYEE`) → **Publish**
-7. Service Binding 화면의 `Employee` 엔티티 → **Preview** 로 List Report 화면 확인
+S/4HANA Cloud(PCE)와 SuccessFactors 환경에서는 **표준 시스템을 수정하지 않는 Clean Core**가 원칙입니다. 확장 기능은 BTP에서 만들고, 표준 시스템과는 공개 API로만 연결해야 업그레이드 영향이 없습니다.
 
-## 2단계 – Fiori 앱 배포 (BAS)
+이 앱은 그 원칙을 따라 설계했습니다.
 
-1. BAS **SAP Fiori 타입 Dev Space**에서 `app/` 폴더를 프로젝트로 가져오기 (또는 Application Generator로 같은 서비스를 소스로 새로 생성)
-2. `ui5.yaml`의 backend URL(`<your-abap-instance>`)을 본인 ABAP 인스턴스 URL로 수정
-3. `npm install` 후 `npm start`로 로컬 실행 확인
-4. 배포: `ui5-deploy.yaml`의 URL/client/package/transport를 채우고 `npm run deploy`
-5. Fiori Launchpad 노출은 BTP Work Zone 또는 ABAP 쪽 Business Catalog/Role 구성 필요
-   (manifest의 inbound: 시맨틱 오브젝트 `zsfemployee`, 액션 `display`)
+- **데이터 복제 없음**: SF 데이터를 별도 테이블에 저장하지 않고, 조회 시점마다 SF OData API를 호출 (RAP Custom Entity)
+- **공개 API만 사용**: ABAP Cloud 릴리스 API(`CL_HTTP_DESTINATION_PROVIDER`, `CL_WEB_HTTP_CLIENT_MANAGER`)만 사용
+- **접속 정보 분리**: 호스트·인증 정보는 코드가 아니라 Communication Arrangement에서 관리. 개발/운영 환경 전환 시 코드 변경 불필요
+- **UI는 애노테이션으로**: 화면 레이아웃을 CDS 애노테이션으로 선언하고 Fiori elements가 렌더링. 프론트엔드 코드 없이 표준 UX 확보
 
-## 3단계 – 실제 SuccessFactors 연동으로 전환
+## 2. 아키텍처
 
-### (a) SuccessFactors 쪽 준비
-- API 호출용 계정(기술 사용자) 준비 및 **Role-Based Permission**에서 `User` 엔티티 읽기 권한 부여
-  (Admin Center → *Manage Permission Roles* → Employee Data / User 관련 권한, 그리고 *Admin Center Permissions → Manage Integration Tools → Allow Admin to Access OData API through Basic Authentication*)
-- 인증 방식 선택: OAuth 2.0 SAML Bearer(권장) 또는 Basic (`사용자ID@회사ID`)
-- 데이터센터 API 호스트 확인 (예: `apisalesdemo8.successfactors.com`)
+```mermaid
+flowchart LR
+    U["사용자<br/>(브라우저)"] --> FE["Fiori elements 앱<br/>List Report · Object Page"]
+    FE -- "OData V4" --> SB["Service Binding<br/>ZUI_SF_EMPLOYEE_O4"]
 
-### (b) ABAP 쪽 Communication 구성
-1. ADT에서 **Outbound Service** `ZSF_ODATA_REST` 생성 (Service Type: REST)
-2. **Communication Scenario** `ZSF_ODATA_SCENARIO` 생성 → Outbound Service 탭에 위 서비스 추가 → Activate → **Publish Locally**
-3. ABAP 인스턴스의 Fiori Launchpad → **Communication Systems** 앱에서 SF 시스템 등록
-   (Host = SF API 호스트, Port 443, 인증 사용자 정보 입력)
-4. **Communication Arrangements** 앱 → 시나리오 `ZSF_ODATA_SCENARIO` 선택 → 위 Communication System 연결 →
-   Outbound Services 에서 `ZSF_ODATA_REST` 활성화 → Save
+    subgraph ABAP["BTP ABAP Environment"]
+        SB --> SD["Service Definition<br/>ZUI_SF_EMPLOYEE"]
+        SD --> CE["Custom Entity<br/>ZI_SF_EMPLOYEE<br/>(필드 + UI 애노테이션)"]
+        CE --> QP["Query Provider<br/>ZCL_SF_EMPLOYEE_QUERY"]
+        QP --> MK["Mock 데이터<br/>(c_use_mock = true)"]
+        QP --> CA["Communication Arrangement<br/>ZSF_ODATA_SCENARIO"]
+    end
 
-### (c) 스위치 변경
-`ZCL_SF_EMPLOYEE_QUERY`에서 아래 한 줄을 변경 후 Activate:
+    CA -- "HTTPS · OData V2" --> SF["SuccessFactors<br/>/odata/v2/User"]
+```
+
+| 오브젝트 | 역할 |
+|---|---|
+| `ZI_SF_EMPLOYEE` | Custom Entity. 10개 필드 정의, `@UI.lineItem` · `@UI.facet` · `@UI.selectionField`로 목록/상세/검색 조건 선언 |
+| `ZCL_SF_EMPLOYEE_QUERY` | `IF_RAP_QUERY_PROVIDER` 구현. Fiori 요청(페이징·정렬·필터)을 SF OData 쿼리로 변환하고 JSON 응답을 엔티티로 매핑 |
+| `ZCX_SF_EMPLOYEE_ERROR` | 예외 클래스. SF 응답 오류를 RAP 프레임워크로 전달 |
+| `ZUI_SF_EMPLOYEE` / `_O4` | Service Definition / OData V4 UI Service Binding |
+| `app/` | Fiori tools로 생성한 List Report V4 앱 (`sap_horizon` 테마) |
+
+## 3. 구현 포인트
+
+**서버 사이드 처리 위임.** Fiori가 보내는 `$top` · `$skip` · `$orderby`와 총건수 요청을 SF 쿼리(`$top`, `$skip`, `$orderby`, `$inlinecount=allpages`)로 변환해 SF에 위임합니다. 데이터가 많아도 ABAP에서 전체를 받아 자르지 않습니다.
+
+**필드 매핑.** SF에는 없는 `Full Name`으로 정렬하면 `lastName` 기준으로 변환하는 등, 화면 필드와 SF 속성 간 차이를 Query Provider에서 흡수합니다.
+
+**Mock ↔ 실제 전환.** `c_use_mock` 상수 하나로 샘플 데이터와 SF 실연동을 전환합니다. SF 테넌트 없이 화면·서비스를 먼저 완성하고, 연동은 나중에 붙일 수 있습니다.
 
 ```abap
-c_use_mock TYPE abap_bool VALUE abap_false,
+CONSTANTS:
+  c_use_mock TYPE abap_bool VALUE abap_true,          " false로 바꾸면 SF 실연동
+  c_scenario TYPE c LENGTH 30 VALUE 'ZSF_ODATA_SCENARIO',
+  c_service  TYPE c LENGTH 40 VALUE 'ZSF_ODATA_REST'.
 ```
 
-## 동작/제한 사항
+**SF 권한·인증.** SF 쪽에서는 API 전용 기술 사용자에 `User` 엔티티 읽기 권한(RBP)만 부여하고, 인증은 OAuth 2.0 SAML Bearer를 권장 방식으로 설계했습니다.
 
-- **서버 사이드 페이징**(`$top/$skip`), **총건수**(`$inlinecount`), **정렬**(`$orderby`)을 SF에 위임합니다.
-- **필터는 `User ID`와 `Department`의 단일 값(EQ)만** SF로 전달합니다. 범위/여러 값 필터는 Mock 모드에서만 동작하며,
-  실제 모드에서 필요하면 `if_rap_query_provider~select`의 필터 조립부를 확장하세요.
-- `Full Name` 정렬은 SF의 `lastName` 기준으로 변환됩니다.
-- JSON 파싱에 `/UI2/CL_JSON`을 사용합니다. 인스턴스에서 사용할 수 없으면 XCO(`xco_cp_json`)로 교체하면 됩니다.
-- SF 응답이 200이 아니면 예외가 발생합니다. 원인은 ADT의 *Feed Reader / Application Log*, 또는 Communication Arrangement 설정을 확인하세요.
-- 조회 전용(읽기) 앱입니다. 수정/생성이 필요하면 Custom Entity 대신 Unmanaged RAP BO로 확장해야 합니다.
+![직원 상세](Screenshots/02-object-page.png)
 
-## PA20 / PA30 prototype
+## 4. 현재 한계와 다음 단계
 
-`pa-fiori/` 에는 인포타입(Infotype) 0000, 0001, 0002, 0006에 대한 ECC 트랜잭션 PA20(조회) 및 PA30(유지보수)의 목업 프로토타입이 포함되어 있습니다.
-자세한 내용은 `pa-fiori/README.md` 를 참조하세요.
+| 구분 | 내용 |
+|---|---|
+| 필터 | 실연동 모드에서는 `User ID`, `Department`의 단일 값(EQ)만 SF로 전달. 범위·다중 값은 Mock 모드에서만 동작 |
+| 쓰기 | 조회 전용. 생성·수정이 필요하면 Unmanaged RAP BO로 확장 필요 |
+| JSON 파싱 | `/UI2/CL_JSON` 사용. 인스턴스에서 미제공 시 `XCO_CP_JSON`으로 교체 |
+| 다음 단계 | SAP Business Accelerator Hub 샌드박스 API로 실데이터 연동 검증, Employee Central 엔티티(`EmpJob` 등)로 확장, Work Zone Launchpad 등록 |
 
-## EC org chart prototype
+## 5. 실행
 
-`ec-orgchart/` 에는 Employee Central 스타일의 조직도(트리 구조, 부서별 상세 정보, 직원 목록, 기준일, 검색 기능) 목업 프로토타입이 포함되어 있습니다.
-자세한 내용은 `ec-orgchart/README.md` 를 참조하세요.
+1. ADT에서 BTP ABAP 인스턴스에 `abap/` 오브젝트를 생성·활성화 (예외 클래스 → 빈 Query Provider → Custom Entity → Query Provider 소스 → Service Definition 순)
+2. Service Binding `ZUI_SF_EMPLOYEE_O4` (OData V4 – UI) Publish 후 Preview
+3. BAS에서 `app/` 실행: `npm install && npm start` (Mock 메타데이터: `npm run start-mock`)
+
+SF 연동 설정(Outbound Service, Communication System/Arrangement)과 배포 절차는 [`docs/SETUP.md`](docs/SETUP.md) 참고.
+
+## 이 저장소의 다른 프로젝트
+
+| 프로젝트 | 내용 |
+|---|---|
+| [PA20 · PA30 · PA40 → SAP Fiori 재구성](pa-fiori/README.md) | SAPGUI 인사 마스터 트랜잭션을 시간 제약 규칙까지 재현한 SAPUI5 앱. 업무 로직 테스트 44건 |
+| [Employee Central 스타일 조직도](ec-orgchart/README.md) | 기준일 기반 조직 트리 · 부서 상세 · 인원 집계 SAPUI5 앱. 업무 로직 테스트 16건 |
+
+---
+
+**작성자** 박건희 · SAP HR(HCM) 컨설턴트/개발자
