@@ -1,0 +1,23 @@
+@EndUserText.label : 'PA: Address (0006)'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zpa_it0006 {
+  key client            : abap.clnt not null;
+  key record_uuid       : sysuuid_x16 not null;
+  pernr                 : abap.numc(8) not null;
+  subty                 : abap.char(4);
+  begda                 : abap.dats;
+  endda                 : abap.dats;
+  stras                 : abap.char(60);
+  ort01                 : abap.char(40);
+  pstlz                 : abap.char(10);
+  land1                 : abap.char(3);
+  telnr                 : abap.char(20);
+  created_by            : abp_creation_user;
+  created_at            : abp_creation_tstmpl;
+  last_changed_by       : abp_lastchange_user;
+  last_changed_at       : abp_lastchange_tstmpl;
+  local_last_changed_at : abp_locinst_lastchange_tstmpl;
+}

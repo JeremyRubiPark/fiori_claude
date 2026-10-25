@@ -79,6 +79,8 @@ flowchart LR
 2. **서비스 계층 분리**: 컨트롤러는 데이터에 직접 접근하지 않고 `PALogic.js`만 호출합니다. 함수 시그니처(`{ok, errors:[{code, params}]}`)를 유지한 채 내부만 ECC OData 호출로 바꾸면 운영 전환이 됩니다.
 3. **ECC 표준 동작 모사**: `PALogic.js`의 생성·변경·한정·삭제 로직은 ECC의 `HR_INFOTYPE_OPERATION`이 수행하는 시간 제약 처리를 그대로 따르도록 설계했습니다. 실제 연동 시 백엔드 동작과 화면 기대값이 어긋나지 않게 하기 위함입니다.
 
+같은 규칙을 BTP ABAP Environment의 RAP 백엔드로 구현한 버전은 [`abap/pa-rap/`](../abap/pa-rap/README.md)에 있습니다.
+
 ECC 연동 설계(SEGW 엔티티 모델, 후보 FM/BAPI, 권한 P_ORGIN/P_PERNR, Cloud Connector + Principal Propagation)는 [`docs/ecc-integration.md`](docs/ecc-integration.md)에 정리했습니다.
 
 ## 4. 검증

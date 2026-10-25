@@ -1,0 +1,29 @@
+@Metadata.layer: #CORE
+// Employees are created only by the Hire (PA40) action -> hide the standard Create button
+@UI.createHidden: true
+@UI.headerInfo: { typeName: 'Employee',
+                  typeNamePlural: 'Employees',
+                  title: { type: #STANDARD, value: 'Pernr' } }
+annotate entity ZC_PA_Employee with
+{
+  @UI.facet: [
+    { id: 'PersAction', purpose: #STANDARD, type: #PRESENTATIONVARIANT_REFERENCE, label: '0000 Personnel Actions',          position: 10, targetElement: '_PersAction', targetQualifier: 'SortByEndda' },
+    { id: 'OrgAssign',  purpose: #STANDARD, type: #PRESENTATIONVARIANT_REFERENCE, label: '0001 Organizational Assignment', position: 20, targetElement: '_OrgAssign', targetQualifier: 'SortByEndda' },
+    { id: 'PersData',   purpose: #STANDARD, type: #PRESENTATIONVARIANT_REFERENCE, label: '0002 Personal Data',             position: 30, targetElement: '_PersData', targetQualifier: 'SortByEndda' },
+    { id: 'Address',    purpose: #STANDARD, type: #PRESENTATIONVARIANT_REFERENCE, label: '0006 Addresses',                 position: 40, targetElement: '_Address', targetQualifier: 'SortByEndda' } ]
+  // List: Hire button (static action) / Object page: Reassign, Leave buttons
+  @UI.lineItem:       [ { position: 10, importance: #HIGH },
+                        { type: #FOR_ACTION, dataAction: 'Hire', label: 'Hire (PA40)' } ]
+  @UI.identification: [ { position: 10 },
+                        { type: #FOR_ACTION, dataAction: 'Reassign', label: 'Org. Reassignment (PA40)' },
+                        { type: #FOR_ACTION, dataAction: 'Leave',    label: 'Leaving (PA40)' } ]
+  @UI.selectionField: [ { position: 10 } ]
+  @EndUserText.label: 'Personnel No.'
+  Pernr;
+  @UI.lineItem: [ { position: 20 } ]
+  @EndUserText.label: 'Changed By'
+  LastChangedBy;
+  @UI.lineItem: [ { position: 30 } ]
+  @EndUserText.label: 'Changed At'
+  LastChangedAt;
+}

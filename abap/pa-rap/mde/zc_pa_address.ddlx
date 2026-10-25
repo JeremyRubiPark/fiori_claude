@@ -1,0 +1,62 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: { typeName: '0006 Address',
+                  typeNamePlural: '0006 Address',
+                  title: { type: #STANDARD, value: 'Begda' } }
+@UI.presentationVariant: [ { qualifier: 'SortByEndda',
+                             sortOrder: [ { by: 'Endda', direction: #DESC } ],
+                             visualizations: [ { type: #AS_LINEITEM } ] } ]
+annotate entity ZC_PA_Address with
+{
+  @UI.facet: [ { id: 'Record', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: '0006 Address', position: 10 } ]
+  @UI.hidden: true
+  RecordUuid;
+  @UI.hidden: true
+  Pernr;
+  @UI.lineItem:       [ { position: 10, importance: #HIGH },
+                        { type: #FOR_ACTION, dataAction: 'Delimit', label: 'Delimit' } ]
+  @UI.identification: [ { position: 10 } ]
+  @EndUserText.label: 'Address Type'
+  Subty;
+  @UI.lineItem:       [ { position: 20, importance: #HIGH } ]
+  @UI.identification: [ { position: 20 } ]
+  @EndUserText.label: 'Start Date'
+  Begda;
+  @UI.lineItem:       [ { position: 30, importance: #HIGH } ]
+  @UI.identification: [ { position: 30 } ]
+  @EndUserText.label: 'End Date'
+  Endda;
+  @UI.lineItem:       [ { position: 40, importance: #HIGH } ]
+  @UI.identification: [ { position: 40 } ]
+  @EndUserText.label: 'Street'
+  Stras;
+  @UI.lineItem:       [ { position: 50, importance: #HIGH } ]
+  @UI.identification: [ { position: 50 } ]
+  @EndUserText.label: 'City'
+  Ort01;
+  @UI.lineItem:       [ { position: 60, importance: #HIGH } ]
+  @UI.identification: [ { position: 60 } ]
+  @EndUserText.label: 'Postal Code'
+  Pstlz;
+  @UI.lineItem:       [ { position: 70, importance: #HIGH } ]
+  @UI.identification: [ { position: 70 } ]
+  @EndUserText.label: 'Country'
+  Land1;
+  @UI.lineItem:       [ { position: 80, importance: #HIGH } ]
+  @UI.identification: [ { position: 80 } ]
+  @EndUserText.label: 'Telephone'
+  Telnr;
+  @UI.hidden: true
+  CreatedBy;
+  @UI.hidden: true
+  CreatedAt;
+  @UI.lineItem:       [ { position: 90, importance: #HIGH } ]
+  @UI.identification: [ { position: 90 } ]
+  @EndUserText.label: 'Changed By'
+  LastChangedBy;
+  @UI.lineItem:       [ { position: 100, importance: #HIGH } ]
+  @UI.identification: [ { position: 100 } ]
+  @EndUserText.label: 'Changed At'
+  LastChangedAt;
+  @UI.hidden: true
+  LocalLastChangedAt;
+}

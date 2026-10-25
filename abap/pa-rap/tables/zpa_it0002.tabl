@@ -1,0 +1,26 @@
+@EndUserText.label : 'PA: Personal Data (0002)'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zpa_it0002 {
+  key client            : abap.clnt not null;
+  key record_uuid       : sysuuid_x16 not null;
+  pernr                 : abap.numc(8) not null;
+  begda                 : abap.dats;
+  endda                 : abap.dats;
+  anred                 : abap.char(1);
+  nachn                 : abap.char(40);
+  vorna                 : abap.char(40);
+  gbdat                 : abap.dats;
+  gesch                 : abap.char(1);
+  natio                 : abap.char(3);
+  sprsl                 : abap.lang;
+  famst                 : abap.char(1);
+  anzkd                 : abap.int1;
+  created_by            : abp_creation_user;
+  created_at            : abp_creation_tstmpl;
+  last_changed_by       : abp_lastchange_user;
+  last_changed_at       : abp_lastchange_tstmpl;
+  local_last_changed_at : abp_locinst_lastchange_tstmpl;
+}

@@ -1,0 +1,8 @@
+@EndUserText.label: 'PA20 / PA30 / PA40 - UI service'
+define service ZUI_PA_EMPLOYEE {
+  expose ZC_PA_Employee   as Employee;
+  expose ZC_PA_PersAction as PersAction;
+  expose ZC_PA_OrgAssign  as OrgAssign;
+  expose ZC_PA_PersData   as PersData;
+  expose ZC_PA_Address    as Address;
+}
