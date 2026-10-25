@@ -1,0 +1,12 @@
+abstract;
+// strict ( 2 );   -- off: in this release strict mode allows only "mandatory : execute",
+//                    which is not passed on to the Fiori action dialog
+with hierarchy;
+
+// Marks the action parameters as required: Fiori shows * in the action dialog
+// and checks them before the action is called. The action code checks them again.
+define behavior for ZA_PA_ReassignParam alias ReassignParam with control
+{
+  field ( mandatory ) Begda, Bukrs, Werks, Btrtl, Persg, Persk,
+                             Orgeh, Plans, Abkrs;
+}

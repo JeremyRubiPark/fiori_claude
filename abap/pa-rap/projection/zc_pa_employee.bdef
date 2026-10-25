@@ -1,0 +1,51 @@
+projection;
+strict ( 2 );
+use draft;
+use side effects;                       // verify: needs the side effects block of the base BDEF
+
+define behavior for ZC_PA_Employee alias Employee
+{
+  use update;
+
+  use action Edit;
+  use action Activate;
+  use action Discard;
+  use action Resume;
+  use action Prepare;
+
+  use action Hire;
+  use action Reassign;
+  use action Leave;
+
+  use association _PersAction { with draft; }
+  use association _OrgAssign  { create; with draft; }
+  use association _PersData   { create; with draft; }
+  use association _Address    { create; with draft; }
+}
+
+define behavior for ZC_PA_PersAction alias PersAction
+{
+  use association _Employee { with draft; }
+}
+
+define behavior for ZC_PA_OrgAssign alias OrgAssign
+{
+  use update;
+  use action RemoveRecord;
+  use association _Employee { with draft; }
+}
+
+define behavior for ZC_PA_PersData alias PersData
+{
+  use update;
+  use action RemoveRecord;
+  use association _Employee { with draft; }
+}
+
+define behavior for ZC_PA_Address alias Address
+{
+  use update;
+  use delete;
+  use action Delimit;
+  use association _Employee { with draft; }
+}

@@ -1,0 +1,248 @@
+managed implementation in class zbp_r_pa_employee unique;
+strict ( 2 );
+with draft;
+
+/* ===================================================================
+   PA30 / PA40 as a RAP business object
+
+   Mapping to the prototype (pa-fiori/webapp/model/PALogic.js):
+     lock / unlock            -> lock master (root)
+     doCreate: delimit/split  -> determination applyTimeConstraint (on save, run in Prepare)
+     doCreate: reject cases   -> validation checkTimeConstraint (incl. BEFORE_FIRST)
+     change (values only)     -> field ( readonly : update ) Begda, Endda, Subty
+     delimit (TC2)            -> action Delimit           (Address)
+     remove  (TC1)            -> action RemoveRecord      (OrgAssign, PersData)
+     executeAction            -> Hire / Reassign / Leave  (root)
+   Activated and tested on SAP BTP ABAP Environment (trial).
+   =================================================================== */
+
+define behavior for ZR_PA_Employee alias Employee
+persistent table zpa_emp
+draft table zpa_emp_d
+etag master LocalLastChangedAt
+lock master total etag LastChangedAt
+authorization master ( instance, global )
+early numbering                                   // Pernr from number range object ZPA_PERNR
+{
+  // Employees are created only by the Hire action (PA40), never directly.
+  internal create;
+  update;
+
+  field ( readonly ) Pernr, CreatedBy, CreatedAt, LastChangedBy, LastChangedAt, LocalLastChangedAt;
+
+  // 0000 is display-only: records are written only inside the PA40 actions.
+  association _PersAction { internal create; with draft; }
+  // TC1 / TC2 rejections (before first record, same start date, TC2 overlap)
+  // are checked before the create is executed. Verify: precheck on create-by-association.
+  association _OrgAssign  { create ( features : instance, precheck ); with draft; }
+  association _PersData   { create ( features : instance, precheck ); with draft; }
+  association _Address    { create ( features : instance, precheck ); with draft; }
+
+  // ---------------------------------------------------------------- PA40
+  // Hiring: new Pernr + 0000(01) + 0002 + 0001 + 0006 in one transaction.
+  // Verify: static factory action on a draft-enabled root (creates a draft instance).
+  static factory action Hire parameter ZA_PA_HireParam [1];
+  // Reassignment: 0000(02) + 0001. Leaving: 0000(10, Stat2 = 0).
+  // Disabled for employees who already left (instance feature control).
+  action ( features : instance ) Reassign parameter ZA_PA_ReassignParam result [1] $self;
+  action ( features : instance ) Leave    parameter ZA_PA_LeaveParam    result [1] $self;
+
+  // Refresh the infotype tables in the UI after an action changed them. Verify syntax.
+  side effects
+  {
+    action Reassign affects entity _PersAction, entity _OrgAssign;
+    action Leave    affects entity _PersAction;
+  }
+
+  // ---------------------------------------------------------------- draft
+  draft action Edit;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Resume;
+  draft determine action Prepare
+  {
+    determination OrgAssign~applyTimeConstraint;
+    determination PersData~applyTimeConstraint;
+    determination Address~applyTimeConstraint;
+    validation OrgAssign~checkTimeConstraint;
+    validation OrgAssign~checkMandatory;
+    validation PersData~checkTimeConstraint;
+    validation PersData~checkMandatory;
+    validation Address~checkTimeConstraint;
+    validation Address~checkMandatory;
+    validation checkActiveRecords;
+  }
+
+  // Every employee needs exactly one valid 0000/0001/0002 record from the hire date on.
+  validation checkActiveRecords on save { create; }
+
+  mapping for zpa_emp corresponding
+  {
+    Pernr              = pernr;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    LastChangedBy      = last_changed_by;
+    LastChangedAt      = last_changed_at;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+}
+
+/* ------------------------------------------------------------------
+   0000 Personnel action  (TC1, display-only)
+   ------------------------------------------------------------------ */
+define behavior for ZR_PA_PersAction alias PersAction
+persistent table zpa_it0000
+draft table zpa_it0000_d
+etag master LocalLastChangedAt
+lock dependent by _Employee
+authorization dependent by _Employee
+{
+  internal update;
+  internal delete;
+
+  field ( numbering : managed, readonly ) RecordUuid;
+  field ( readonly ) Pernr, Begda, Endda, Massn, Massg, Stat2,
+                     CreatedBy, CreatedAt, LastChangedBy, LastChangedAt, LocalLastChangedAt;
+
+  association _Employee { with draft; }
+
+  // Same TC1 adjustment as 0001/0002: a new action delimits the previous 0000 record.
+  determination applyTimeConstraint on modify { create; }
+
+  mapping for zpa_it0000 corresponding
+  {
+    RecordUuid         = record_uuid;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    LastChangedBy      = last_changed_by;
+    LastChangedAt      = last_changed_at;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+}
+
+/* ------------------------------------------------------------------
+   0001 Organizational assignment  (TC1)
+   ------------------------------------------------------------------ */
+define behavior for ZR_PA_OrgAssign alias OrgAssign
+persistent table zpa_it0001
+draft table zpa_it0001_d
+etag master LocalLastChangedAt
+lock dependent by _Employee
+authorization dependent by _Employee
+{
+  update ( features : instance );
+  // TC1 delete must stretch the neighbour record -> exposed as action RemoveRecord.
+  internal delete;
+
+  field ( numbering : managed, readonly ) RecordUuid;
+  field ( readonly ) Pernr, CreatedBy, CreatedAt, LastChangedBy, LastChangedAt, LocalLastChangedAt;
+  // Dates are set on create and afterwards only moved by the TC logic (like PA30).
+  field ( mandatory : create, readonly : update ) Begda;
+  field ( readonly : update ) Endda;
+  field ( mandatory ) Bukrs, Werks, Btrtl, Persg, Persk, Orgeh, Plans, Abkrs;
+
+  association _Employee { with draft; }
+
+  // Disabled when this is the only record (LAST_RECORD in the prototype).
+  action ( features : instance ) RemoveRecord;
+
+  // Delimit the covering record to Begda - 1, split off a tail record if the new
+  // record ends earlier, default Endda (END_ADJUSTED / SPLIT_TAIL / DELIMITED_PREV).
+  determination applyTimeConstraint on save { create; }
+
+  // Safety net on save: no gaps, no overlaps, last record ends 9999-12-31.
+  validation checkTimeConstraint on save { create; field Begda, Endda; }
+  validation checkMandatory      on save { create; update; }
+
+  mapping for zpa_it0001 corresponding
+  {
+    RecordUuid         = record_uuid;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    LastChangedBy      = last_changed_by;
+    LastChangedAt      = last_changed_at;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+}
+
+/* ------------------------------------------------------------------
+   0002 Personal data  (TC1)
+   ------------------------------------------------------------------ */
+define behavior for ZR_PA_PersData alias PersData
+persistent table zpa_it0002
+draft table zpa_it0002_d
+etag master LocalLastChangedAt
+lock dependent by _Employee
+authorization dependent by _Employee
+{
+  update ( features : instance );
+  internal delete;
+
+  field ( numbering : managed, readonly ) RecordUuid;
+  field ( readonly ) Pernr, CreatedBy, CreatedAt, LastChangedBy, LastChangedAt, LocalLastChangedAt;
+  field ( mandatory : create, readonly : update ) Begda;
+  field ( readonly : update ) Endda;
+  field ( mandatory ) Nachn, Vorna, Gbdat, Gesch;
+
+  association _Employee { with draft; }
+
+  action ( features : instance ) RemoveRecord;
+
+    determination applyTimeConstraint on save { create; }
+
+  validation checkTimeConstraint on save { create; field Begda, Endda; }
+  validation checkMandatory      on save { create; update; }
+
+  mapping for zpa_it0002 corresponding
+  {
+    RecordUuid         = record_uuid;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    LastChangedBy      = last_changed_by;
+    LastChangedAt      = last_changed_at;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+}
+
+/* ------------------------------------------------------------------
+   0006 Address  (TC2: at most one record per subtype at any date, gaps allowed)
+   ------------------------------------------------------------------ */
+define behavior for ZR_PA_Address alias Address
+persistent table zpa_it0006
+draft table zpa_it0006_d
+etag master LocalLastChangedAt
+lock dependent by _Employee
+authorization dependent by _Employee
+{
+  update ( features : instance );
+  // TC2: a plain delete is fine, no neighbour record has to be adjusted.
+  delete ( features : instance );
+
+  field ( numbering : managed, readonly ) RecordUuid;
+  field ( readonly ) Pernr, CreatedBy, CreatedAt, LastChangedBy, LastChangedAt, LocalLastChangedAt;
+  field ( mandatory : create, readonly : update ) Subty, Begda;
+  field ( readonly : update ) Endda;
+  field ( mandatory ) Stras, Ort01, Land1;
+
+  association _Employee { with draft; }
+
+  // Move the end date forward (DELIMIT_INVALID if outside Begda .. old Endda - 1).
+  action ( features : instance ) Delimit parameter ZA_PA_DelimitParam result [1] $self;
+
+  // Delimit the covering record of the same subtype to Begda - 1.
+    determination applyTimeConstraint on save { create; }
+
+  // No overlap within the same subtype.
+  validation checkTimeConstraint on save { create; field Subty, Begda, Endda; }
+  validation checkMandatory      on save { create; update; }
+
+  mapping for zpa_it0006 corresponding
+  {
+    RecordUuid         = record_uuid;
+    CreatedBy          = created_by;
+    CreatedAt          = created_at;
+    LastChangedBy      = last_changed_by;
+    LastChangedAt      = last_changed_at;
+    LocalLastChangedAt = local_last_changed_at;
+  }
+}

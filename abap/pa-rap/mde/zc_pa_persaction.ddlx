@@ -1,0 +1,49 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: { typeName: '0000 Personnel Action',
+                  typeNamePlural: '0000 Personnel Action',
+                  title: { type: #STANDARD, value: 'Begda' } }
+@UI.presentationVariant: [ { qualifier: 'SortByEndda',
+                             sortOrder: [ { by: 'Endda', direction: #DESC } ],
+                             visualizations: [ { type: #AS_LINEITEM } ] } ]
+annotate entity ZC_PA_PersAction with
+{
+  @UI.facet: [ { id: 'Record', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: '0000 Personnel Action', position: 10 } ]
+  @UI.hidden: true
+  RecordUuid;
+  @UI.hidden: true
+  Pernr;
+  @UI.lineItem:       [ { position: 10, importance: #HIGH } ]
+  @UI.identification: [ { position: 10 } ]
+  @EndUserText.label: 'Start Date'
+  Begda;
+  @UI.lineItem:       [ { position: 20, importance: #HIGH } ]
+  @UI.identification: [ { position: 20 } ]
+  @EndUserText.label: 'End Date'
+  Endda;
+  @UI.lineItem:       [ { position: 30, importance: #HIGH } ]
+  @UI.identification: [ { position: 30 } ]
+  @EndUserText.label: 'Action Type'
+  Massn;
+  @UI.lineItem:       [ { position: 40, importance: #HIGH } ]
+  @UI.identification: [ { position: 40 } ]
+  @EndUserText.label: 'Reason'
+  Massg;
+  @UI.lineItem:       [ { position: 50, importance: #HIGH } ]
+  @UI.identification: [ { position: 50 } ]
+  @EndUserText.label: 'Employment Status'
+  Stat2;
+  @UI.hidden: true
+  CreatedBy;
+  @UI.hidden: true
+  CreatedAt;
+  @UI.lineItem:       [ { position: 60, importance: #HIGH } ]
+  @UI.identification: [ { position: 60 } ]
+  @EndUserText.label: 'Changed By'
+  LastChangedBy;
+  @UI.lineItem:       [ { position: 70, importance: #HIGH } ]
+  @UI.identification: [ { position: 70 } ]
+  @EndUserText.label: 'Changed At'
+  LastChangedAt;
+  @UI.hidden: true
+  LocalLastChangedAt;
+}

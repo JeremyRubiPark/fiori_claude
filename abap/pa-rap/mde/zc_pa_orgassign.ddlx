@@ -1,0 +1,78 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: { typeName: '0001 Organizational Assignment',
+                  typeNamePlural: '0001 Organizational Assignment',
+                  title: { type: #STANDARD, value: 'Begda' } }
+@UI.presentationVariant: [ { qualifier: 'SortByEndda',
+                             sortOrder: [ { by: 'Endda', direction: #DESC } ],
+                             visualizations: [ { type: #AS_LINEITEM } ] } ]
+annotate entity ZC_PA_OrgAssign with
+{
+  @UI.facet: [ { id: 'Record', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: '0001 Organizational Assignment', position: 10 } ]
+  @UI.hidden: true
+  RecordUuid;
+  @UI.hidden: true
+  Pernr;
+  @UI.lineItem:       [ { position: 10, importance: #HIGH },
+                        { type: #FOR_ACTION, dataAction: 'RemoveRecord', label: 'Delete Record' } ]
+  @UI.identification: [ { position: 10 } ]
+  @EndUserText.label: 'Start Date'
+  Begda;
+  @UI.lineItem:       [ { position: 20, importance: #HIGH } ]
+  @UI.identification: [ { position: 20 } ]
+  @EndUserText.label: 'End Date'
+  Endda;
+  @UI.lineItem:       [ { position: 30, importance: #HIGH } ]
+  @UI.identification: [ { position: 30 } ]
+  @EndUserText.label: 'Company Code'
+  Bukrs;
+  @UI.lineItem:       [ { position: 40, importance: #HIGH } ]
+  @UI.identification: [ { position: 40 } ]
+  @EndUserText.label: 'Personnel Area'
+  Werks;
+  @UI.lineItem:       [ { position: 50, importance: #HIGH } ]
+  @UI.identification: [ { position: 50 } ]
+  @EndUserText.label: 'Personnel Subarea'
+  Btrtl;
+  @UI.lineItem:       [ { position: 60, importance: #HIGH } ]
+  @UI.identification: [ { position: 60 } ]
+  @EndUserText.label: 'Employee Group'
+  Persg;
+  @UI.lineItem:       [ { position: 70, importance: #HIGH } ]
+  @UI.identification: [ { position: 70 } ]
+  @EndUserText.label: 'Employee Subgroup'
+  Persk;
+  @UI.lineItem:       [ { position: 80, importance: #HIGH } ]
+  @UI.identification: [ { position: 80 } ]
+  @EndUserText.label: 'Org. Unit'
+  Orgeh;
+  @UI.lineItem:       [ { position: 90, importance: #HIGH } ]
+  @UI.identification: [ { position: 90 } ]
+  @EndUserText.label: 'Position'
+  Plans;
+  @UI.lineItem:       [ { position: 100, importance: #HIGH } ]
+  @UI.identification: [ { position: 100 } ]
+  @EndUserText.label: 'Job'
+  Stell;
+  @UI.lineItem:       [ { position: 110, importance: #HIGH } ]
+  @UI.identification: [ { position: 110 } ]
+  @EndUserText.label: 'Cost Center'
+  Kostl;
+  @UI.lineItem:       [ { position: 120, importance: #HIGH } ]
+  @UI.identification: [ { position: 120 } ]
+  @EndUserText.label: 'Payroll Area'
+  Abkrs;
+  @UI.hidden: true
+  CreatedBy;
+  @UI.hidden: true
+  CreatedAt;
+  @UI.lineItem:       [ { position: 130, importance: #HIGH } ]
+  @UI.identification: [ { position: 130 } ]
+  @EndUserText.label: 'Changed By'
+  LastChangedBy;
+  @UI.lineItem:       [ { position: 140, importance: #HIGH } ]
+  @UI.identification: [ { position: 140 } ]
+  @EndUserText.label: 'Changed At'
+  LastChangedAt;
+  @UI.hidden: true
+  LocalLastChangedAt;
+}

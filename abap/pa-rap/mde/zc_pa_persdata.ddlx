@@ -1,0 +1,74 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: { typeName: '0002 Personal Data',
+                  typeNamePlural: '0002 Personal Data',
+                  title: { type: #STANDARD, value: 'Begda' } }
+@UI.presentationVariant: [ { qualifier: 'SortByEndda',
+                             sortOrder: [ { by: 'Endda', direction: #DESC } ],
+                             visualizations: [ { type: #AS_LINEITEM } ] } ]
+annotate entity ZC_PA_PersData with
+{
+  @UI.facet: [ { id: 'Record', purpose: #STANDARD, type: #IDENTIFICATION_REFERENCE, label: '0002 Personal Data', position: 10 } ]
+  @UI.hidden: true
+  RecordUuid;
+  @UI.hidden: true
+  Pernr;
+  @UI.lineItem:       [ { position: 10, importance: #HIGH },
+                        { type: #FOR_ACTION, dataAction: 'RemoveRecord', label: 'Delete Record' } ]
+  @UI.identification: [ { position: 10 } ]
+  @EndUserText.label: 'Start Date'
+  Begda;
+  @UI.lineItem:       [ { position: 20, importance: #HIGH } ]
+  @UI.identification: [ { position: 20 } ]
+  @EndUserText.label: 'End Date'
+  Endda;
+  @UI.lineItem:       [ { position: 30, importance: #HIGH } ]
+  @UI.identification: [ { position: 30 } ]
+  @EndUserText.label: 'Form of Address'
+  Anred;
+  @UI.lineItem:       [ { position: 40, importance: #HIGH } ]
+  @UI.identification: [ { position: 40 } ]
+  @EndUserText.label: 'Last Name'
+  Nachn;
+  @UI.lineItem:       [ { position: 50, importance: #HIGH } ]
+  @UI.identification: [ { position: 50 } ]
+  @EndUserText.label: 'First Name'
+  Vorna;
+  @UI.lineItem:       [ { position: 60, importance: #HIGH } ]
+  @UI.identification: [ { position: 60 } ]
+  @EndUserText.label: 'Date of Birth'
+  Gbdat;
+  @UI.lineItem:       [ { position: 70, importance: #HIGH } ]
+  @UI.identification: [ { position: 70 } ]
+  @EndUserText.label: 'Gender'
+  Gesch;
+  @UI.lineItem:       [ { position: 80, importance: #HIGH } ]
+  @UI.identification: [ { position: 80 } ]
+  @EndUserText.label: 'Nationality'
+  Natio;
+  @UI.lineItem:       [ { position: 90, importance: #HIGH } ]
+  @UI.identification: [ { position: 90 } ]
+  @EndUserText.label: 'Language'
+  Sprsl;
+  @UI.lineItem:       [ { position: 100, importance: #HIGH } ]
+  @UI.identification: [ { position: 100 } ]
+  @EndUserText.label: 'Marital Status'
+  Famst;
+  @UI.lineItem:       [ { position: 110, importance: #HIGH } ]
+  @UI.identification: [ { position: 110 } ]
+  @EndUserText.label: 'No. of Children'
+  Anzkd;
+  @UI.hidden: true
+  CreatedBy;
+  @UI.hidden: true
+  CreatedAt;
+  @UI.lineItem:       [ { position: 120, importance: #HIGH } ]
+  @UI.identification: [ { position: 120 } ]
+  @EndUserText.label: 'Changed By'
+  LastChangedBy;
+  @UI.lineItem:       [ { position: 130, importance: #HIGH } ]
+  @UI.identification: [ { position: 130 } ]
+  @EndUserText.label: 'Changed At'
+  LastChangedAt;
+  @UI.hidden: true
+  LocalLastChangedAt;
+}
