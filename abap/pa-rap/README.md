@@ -10,7 +10,7 @@
 | 인포타입 | 0000 인사조치 · 0001 조직배정 · 0002 개인데이터 · 0006 주소 |
 | 기술 | ABAP Cloud, RAP managed + draft, CDS View Entity, BDEF (strict 2), EML, OData V4, Fiori elements (List Report / Object Page) |
 | 환경 | SAP BTP ABAP Environment (Trial), ADT (Eclipse) |
-| 상태 | 전 오브젝트 활성화, Fiori elements 미리보기로 시나리오 검증 완료 |
+| 상태 | 전 오브젝트 활성화, Fiori elements 미리보기로 시나리오 검증, **ABAP Unit 20개 통과** |
 
 ---
 
@@ -78,7 +78,23 @@ erDiagram
 
 ![발령 이력](screenshots/05-pa40-action-history.png)
 
-## 4. 설계에서 바뀐 점
+## 4. 자동 테스트 (ABAP Unit)
+
+[`test/ztc_pa_employee.clas.abap`](test/ztc_pa_employee.clas.abap) — 프로토타입 테스트(`pa-fiori/test/palogic.test.js`) 중 업무 규칙 시나리오를 EML로 옮긴 **20개 테스트, 모두 통과**.
+
+| 영역 | 테스트 |
+|---|---|
+| 채용 | 4개 인포타입 일괄 생성 · 사번 채번 / 필수값 누락 시 아무것도 생성 안 됨 |
+| 0001 TC1 | 이전 레코드 한정 / 종료일이 이르면 분할 / 종료일 초과 시 조정 / 같은 시작일 거부 / 마지막 레코드 삭제 시 앞 레코드 연장 / 첫 레코드 삭제 시 다음 레코드 시작일 당김 / 유일한 레코드 삭제 불가 |
+| 0002 | 0001과 같은 한정 규칙 |
+| 0006 TC2 | 같은 유형 한정 / 다른 유형 독립 / 같은 시작일 거부 / Delimit / 범위 밖 Delimit 거부 |
+| 발령 | 조직변경(0000 + 0001) / 퇴사(재직상태 0) / 퇴사자 발령 거부 / 같은 날 발령 거부 / 채용 전 날짜 거부 |
+
+- 활성·draft 테이블 10개를 `CL_OSQL_TEST_ENVIRONMENT` 테스트 더블로 바꿔 실행 — 실제 데이터에 영향 없음
+- 채용 액션으로 만든 draft에 `Prepare`(정상 케이스) 또는 `Activate`(거부 케이스)를 호출해 화면의 Save와 같은 경로로 검증, 커밋 없이 테스트마다 롤백
+- EML을 local mode 없이 호출해 기능 제어(버튼 비활성) 규칙까지 확인
+
+## 5. 설계에서 바뀐 점
 
 구현하면서 실제 시스템 동작을 보고 바꾼 부분입니다. 같은 문제를 만나는 사람에게 도움이 되도록 남겨 둡니다.
 
@@ -91,8 +107,10 @@ erDiagram
 | 파라미터 필수 지정에 `@ObjectModel.mandatory` | ABAP Cloud에서 릴리스되지 않은 애노테이션 | 파라미터용 abstract BDEF의 `field ( mandatory )` (이 릴리스에서는 `strict ( 2 )` 없이만 팝업에 반영됨) |
 | 0000 TC1을 별도 determination으로 | 0000은 액션으로만 바뀌는 인포타입 | 액션 안에서 직접 한정 · 생성 |
 | 루트 `internal create`만으로 생성 차단 | draft 목록 화면에 Create 버튼이 남음 | `@UI.createHidden: true` |
+| 테스트에서 `Prepare`의 FAILED로 거부 확인 | validation 실패가 Prepare 호출 쪽 FAILED로 돌아오지 않음 | 거부 테스트는 `Activate`로 확인 (Activate에는 `%cid` 필수 — 계약 위반 `MISSING_CID`) |
+| 글로벌 테스트 클래스에 설명 주석 | 정의부 주석은 저장 불가, 테스트 관계 누락 경고 | 설명은 메서드 안으로, 클래스 앞에는 `"! @testing BDEF:ZR_PA_EMPLOYEE`만 |
 
-## 5. 폴더 구성
+## 6. 폴더 구성
 
 ```
 tables/      활성 테이블 5개 (zpa_emp, zpa_it0000/0001/0002/0006)
@@ -103,11 +121,12 @@ class/       Behavior Pool ZBP_R_PA_EMPLOYEE (Local Types에 핸들러 구현)
 projection/  프로젝션 뷰 ZC_PA_* + 프로젝션 BDEF
 mde/         UI 애노테이션 (메타데이터 확장)
 service/     서비스 정의 ZUI_PA_EMPLOYEE
+test/        ABAP Unit 테스트 클래스 ZTC_PA_EMPLOYEE
 screenshots/ 검증 화면
 DESIGN.md    설계 문서
 ```
 
-## 6. 다시 만들기 (ADT)
+## 7. 다시 만들기 (ADT)
 
 1. 패키지 생성 (Superpackage `ZLOCAL`)
 2. `tables/` 5개 활성화
@@ -115,10 +134,11 @@ DESIGN.md    설계 문서
 4. `params/` 엔티티 4개 활성화 → 각각 `params/bdef/` Behavior Definition 생성
 5. `bdef/` BDEF 붙여넣기 → draft 테이블 5개와 구현 클래스는 ADT 퀵픽스(Ctrl+1)로 생성 → `class/`의 Local Types 내용으로 교체 → 함께 활성화
 6. `projection/` 뷰 5개(저장 후 일괄 활성화) → 프로젝션 BDEF → `mde/` 5개 → `service/` → Service Binding (OData V4 - UI) Publish → Preview
+7. `test/` 클래스 생성 후 Ctrl+Shift+F10으로 ABAP Unit 실행
 
-## 7. 남은 과제
+## 8. 남은 과제
 
-- ABAP Unit: 프로토타입의 44개 로직 테스트를 EML 기반 테스트로 이전
+- ABAP Unit 확장: BEFORE_FIRST(저장된 직원 기준)처럼 커밋된 데이터가 필요한 시나리오
 - side effects: 삭제 · 액션 후 형제 레코드 자동 갱신
 - 권한: `P_ORGIN`에 해당하는 권한 객체로 조회 / 유지보수 역할 분리, CDS 접근 제어
 - 사번 채번을 번호범위 객체로 전환 (현재는 최대값 + 1)
