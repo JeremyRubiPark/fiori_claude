@@ -50,12 +50,13 @@ early numbering                                   // Pernr from number range obj
   // Refresh the infotype tables in the UI after an action changed them. Verify syntax.
   side effects
   {
-    action Reassign affects entity _PersAction, entity _OrgAssign;
-    action Leave    affects entity _PersAction;
+    action Reassign affects entity _PersAction, entity _OrgAssign, messages;
+    action Leave    affects entity _PersAction, messages;
   }
 
   // ---------------------------------------------------------------- draft
-  draft action Edit;
+  // Edit is disabled for employees outside the user's maintain authorization (see get_instance_features)
+  draft action ( features : instance ) Edit;
   draft action Activate optimized;
   draft action Discard;
   draft action Resume;
@@ -146,6 +147,12 @@ authorization dependent by _Employee
   // Disabled when this is the only record (LAST_RECORD in the prototype).
   action ( features : instance ) RemoveRecord;
 
+  // RemoveRecord also changes the neighbour record -> reload the whole infotype table
+  side effects
+  {
+    action RemoveRecord affects entity _Employee, messages;
+  }
+
   // Delimit the covering record to Begda - 1, split off a tail record if the new
   // record ends earlier, default Endda (END_ADJUSTED / SPLIT_TAIL / DELIMITED_PREV).
   determination applyTimeConstraint on save { create; }
@@ -187,6 +194,12 @@ authorization dependent by _Employee
   association _Employee { with draft; }
 
   action ( features : instance ) RemoveRecord;
+
+  // RemoveRecord also changes the neighbour record -> reload the whole infotype table
+  side effects
+  {
+    action RemoveRecord affects entity _Employee, messages;
+  }
 
     determination applyTimeConstraint on save { create; }
 

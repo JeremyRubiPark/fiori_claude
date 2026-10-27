@@ -1,3 +1,62 @@
+CLASS lcl_pa_auth DEFINITION ABSTRACT FINAL.
+  PUBLIC SECTION.
+    "! maintain (02) authorization for at least one personnel area
+    CLASS-METHODS may_maintain_any
+      RETURNING VALUE(result) TYPE abap_bool.
+    "! maintain (02) authorization for the employee's current personnel area
+    CLASS-METHODS may_maintain
+      IMPORTING pernr         TYPE zpa_emp-pernr
+      RETURNING VALUE(result) TYPE abap_bool.
+  PRIVATE SECTION.
+    CLASS-METHODS current_user
+      RETURNING VALUE(result) TYPE zpa_auth-uname.
+ENDCLASS.
+
+CLASS lcl_pa_auth IMPLEMENTATION.
+
+  METHOD current_user.
+    result = cl_abap_context_info=>get_user_technical_name( ).
+  ENDMETHOD.
+
+  METHOD may_maintain_any.
+    DATA(user) = current_user( ).
+    SELECT SINGLE @abap_true FROM zpa_auth
+      WHERE uname = @user AND actvt = '02'
+      INTO @result.
+  ENDMETHOD.
+
+  METHOD may_maintain.
+    DATA(user)  = current_user( ).
+    DATA(today) = cl_abap_context_info=>get_system_date( ).
+
+    " personnel area of the saved 0001 record valid today;
+    " future hire -> the next record (like the prototype's key-date fallback);
+    " otherwise (all records in the past) -> the latest record
+    SELECT SINGLE werks FROM zpa_it0001
+      WHERE pernr = @pernr AND begda <= @today AND endda >= @today
+      INTO @DATA(werks).
+    IF sy-subrc <> 0.
+      SELECT SINGLE werks FROM zpa_it0001
+        WHERE pernr = @pernr
+          AND begda = ( SELECT MIN( begda ) FROM zpa_it0001
+                          WHERE pernr = @pernr AND begda > @today )
+        INTO @werks.
+    ENDIF.
+    IF sy-subrc <> 0.
+      SELECT SINGLE werks FROM zpa_it0001
+        WHERE pernr = @pernr
+          AND begda = ( SELECT MAX( begda ) FROM zpa_it0001 WHERE pernr = @pernr )
+        INTO @werks.
+    ENDIF.
+
+    SELECT SINGLE @abap_true FROM zpa_auth
+      WHERE uname = @user AND actvt = '02'
+        AND ( werks = '*' OR werks = @werks )
+      INTO @result.
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lhc_Employee DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
@@ -48,14 +107,24 @@ CLASS lhc_Employee IMPLEMENTATION.
         RESULT DATA(actions).
       SORT actions BY Begda DESCENDING.
 
+      " no maintain authorization for this employee -> no Edit, no PA40 actions
+      DATA(may_maintain) = lcl_pa_auth=>may_maintain( key-Pernr ).
+
       " latest personnel action = leaving -> no further reassignment / leaving
       DATA(has_left) = xsdbool( actions IS NOT INITIAL AND actions[ 1 ]-Stat2 = '0' ).
+
+      DATA(edit_fc) = if_abap_behv=>fc-o-enabled.
+      IF may_maintain = abap_false.
+        edit_fc = if_abap_behv=>fc-o-disabled.
+      ENDIF.
+
       DATA(action_fc) = if_abap_behv=>fc-o-enabled.
-      IF has_left = abap_true.
+      IF has_left = abap_true OR may_maintain = abap_false.
         action_fc = if_abap_behv=>fc-o-disabled.
       ENDIF.
 
       APPEND VALUE #( %tky              = key-%tky
+                      %action-Edit      = edit_fc
                       %action-Reassign  = action_fc
                       %action-Leave     = action_fc
                       %assoc-_OrgAssign = if_abap_behv=>fc-o-enabled
@@ -68,9 +137,38 @@ CLASS lhc_Employee IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_authorizations.
+    LOOP AT keys INTO DATA(key).
+      DATA(auth) = if_abap_behv=>auth-unauthorized.
+      IF lcl_pa_auth=>may_maintain( key-Pernr ) = abap_true.
+        auth = if_abap_behv=>auth-allowed.
+      ENDIF.
+
+      APPEND VALUE #( %tky             = key-%tky
+                      %update          = auth
+                      %action-Reassign = auth
+                      %action-Leave    = auth ) TO result.
+    ENDLOOP.
   ENDMETHOD.
 
   METHOD get_global_authorizations.
+    DATA(auth) = if_abap_behv=>auth-unauthorized.
+    IF lcl_pa_auth=>may_maintain_any( ) = abap_true.
+      auth = if_abap_behv=>auth-allowed.
+    ENDIF.
+
+    " update also controls the draft action Edit
+    IF requested_authorizations-%update = if_abap_behv=>mk-on.
+      result-%update = auth.
+    ENDIF.
+    IF requested_authorizations-%action-Hire = if_abap_behv=>mk-on.
+      result-%action-Hire = auth.
+    ENDIF.
+    IF requested_authorizations-%action-Reassign = if_abap_behv=>mk-on.
+      result-%action-Reassign = auth.
+    ENDIF.
+    IF requested_authorizations-%action-Leave = if_abap_behv=>mk-on.
+      result-%action-Leave = auth.
+    ENDIF.
   ENDMETHOD.
 
   METHOD precheck_cba_Address.
@@ -484,9 +582,24 @@ CLASS lhc_OrgAssign IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_authorizations.
+    READ ENTITIES OF zr_pa_employee IN LOCAL MODE
+      ENTITY OrgAssign
+        FIELDS ( Pernr ) WITH CORRESPONDING #( keys )
+      RESULT DATA(records).
+
+    result = VALUE #( FOR r IN records
+                      ( %tky                 = r-%tky
+                        %action-RemoveRecord = COND #( WHEN lcl_pa_auth=>may_maintain( r-Pernr ) = abap_true
+                                                       THEN if_abap_behv=>auth-allowed
+                                                       ELSE if_abap_behv=>auth-unauthorized ) ) ).
   ENDMETHOD.
 
   METHOD get_global_authorizations.
+    IF requested_authorizations-%action-RemoveRecord = if_abap_behv=>mk-on.
+      result-%action-RemoveRecord = COND #( WHEN lcl_pa_auth=>may_maintain_any( ) = abap_true
+                                            THEN if_abap_behv=>auth-allowed
+                                            ELSE if_abap_behv=>auth-unauthorized ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD RemoveRecord.
@@ -821,9 +934,24 @@ CLASS lhc_PersData IMPLEMENTATION.
 
 
   METHOD get_instance_authorizations.
+    READ ENTITIES OF zr_pa_employee IN LOCAL MODE
+      ENTITY PersData
+        FIELDS ( Pernr ) WITH CORRESPONDING #( keys )
+      RESULT DATA(records).
+
+    result = VALUE #( FOR r IN records
+                      ( %tky                 = r-%tky
+                        %action-RemoveRecord = COND #( WHEN lcl_pa_auth=>may_maintain( r-Pernr ) = abap_true
+                                                       THEN if_abap_behv=>auth-allowed
+                                                       ELSE if_abap_behv=>auth-unauthorized ) ) ).
   ENDMETHOD.
 
   METHOD get_global_authorizations.
+    IF requested_authorizations-%action-RemoveRecord = if_abap_behv=>mk-on.
+      result-%action-RemoveRecord = COND #( WHEN lcl_pa_auth=>may_maintain_any( ) = abap_true
+                                            THEN if_abap_behv=>auth-allowed
+                                            ELSE if_abap_behv=>auth-unauthorized ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD RemoveRecord.
@@ -1151,9 +1279,24 @@ CLASS lhc_Address IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_instance_authorizations.
+    READ ENTITIES OF zr_pa_employee IN LOCAL MODE
+      ENTITY Address
+        FIELDS ( Pernr ) WITH CORRESPONDING #( keys )
+      RESULT DATA(records).
+
+    result = VALUE #( FOR r IN records
+                      ( %tky            = r-%tky
+                        %action-Delimit = COND #( WHEN lcl_pa_auth=>may_maintain( r-Pernr ) = abap_true
+                                                  THEN if_abap_behv=>auth-allowed
+                                                  ELSE if_abap_behv=>auth-unauthorized ) ) ).
   ENDMETHOD.
 
   METHOD get_global_authorizations.
+    IF requested_authorizations-%action-Delimit = if_abap_behv=>mk-on.
+      result-%action-Delimit = COND #( WHEN lcl_pa_auth=>may_maintain_any( ) = abap_true
+                                       THEN if_abap_behv=>auth-allowed
+                                       ELSE if_abap_behv=>auth-unauthorized ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD Delimit.

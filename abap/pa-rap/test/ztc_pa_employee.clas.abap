@@ -18,6 +18,8 @@ CLASS ztc_pa_employee DEFINITION
     METHODS setup.
     METHODS teardown.
 
+    METHODS set_authorization
+      IMPORTING actvt TYPE zpa_auth-actvt.
     METHODS hire
       IMPORTING begda        TYPE d DEFAULT '20200101'
       RETURNING VALUE(pernr) TYPE zr_pa_employee-Pernr.
@@ -61,6 +63,7 @@ CLASS ztc_pa_employee DEFINITION
     METHODS action_on_leaver_rejected   FOR TESTING.
     METHODS same_day_action_rejected    FOR TESTING.
     METHODS action_before_hire_rejected FOR TESTING.
+    METHODS display_user_cannot_hire    FOR TESTING.
 ENDCLASS.
 
 
@@ -83,7 +86,8 @@ CLASS ztc_pa_employee IMPLEMENTATION.
                                              ( 'ZPA_IT0000' ) ( 'ZPA_IT0000_D' )
                                              ( 'ZPA_IT0001' ) ( 'ZPA_IT0001_D' )
                                              ( 'ZPA_IT0002' ) ( 'ZPA_IT0002_D' )
-                                             ( 'ZPA_IT0006' ) ( 'ZPA_IT0006_D' ) ) ).
+                                             ( 'ZPA_IT0006' ) ( 'ZPA_IT0006_D' )
+                                             ( 'ZPA_AUTH' ) ) ).
   ENDMETHOD.
 
   METHOD class_teardown.
@@ -92,6 +96,17 @@ CLASS ztc_pa_employee IMPLEMENTATION.
 
   METHOD setup.
     sql_env->clear_doubles( ).
+    " default: the test user may maintain every personnel area
+    set_authorization( '02' ).
+  ENDMETHOD.
+
+  METHOD set_authorization.
+    DATA auth TYPE STANDARD TABLE OF zpa_auth WITH EMPTY KEY.
+    sql_env->clear_doubles( ).
+    auth = VALUE #( ( uname = cl_abap_context_info=>get_user_technical_name( )
+                      werks = '*'
+                      actvt = actvt ) ).
+    sql_env->insert_test_data( auth ).
   ENDMETHOD.
 
   METHOD teardown.
@@ -528,6 +543,29 @@ CLASS ztc_pa_employee IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( act = failed-employee ).
     cl_abap_unit_assert=>assert_equals( act = lines( read_actions( pernr ) ) exp = 1 ).
+  ENDMETHOD.
+
+  METHOD display_user_cannot_hire.
+    " authorization: display only (03) -> the PA40 hiring is not allowed
+    set_authorization( '03' ).
+
+    MODIFY ENTITIES OF zr_pa_employee
+      ENTITY Employee
+        EXECUTE Hire FROM VALUE #( ( %cid   = 'HIRE'
+                                     %param = VALUE #( Begda = '20261101'
+                                                       Nachn = 'Test'      Vorna = 'Employee'
+                                                       Gbdat = '19900101'  Gesch = '1'
+                                                       Bukrs = '1000'      Werks = '1000'
+                                                       Btrtl = '0001'      Persg = '1'
+                                                       Persk = 'K1'        Orgeh = '20000001'
+                                                       Plans = '30000001'  Abkrs = 'K1'
+                                                       Stras = 'Street 1'  Ort01 = 'Seoul'
+                                                       Land1 = 'KR' ) ) )
+      MAPPED DATA(mapped)
+      FAILED DATA(failed).
+
+    cl_abap_unit_assert=>assert_not_initial( act = failed-employee ).
+    cl_abap_unit_assert=>assert_initial( act = mapped-employee msg = 'No employee may be created' ).
   ENDMETHOD.
 
   METHOD action_before_hire_rejected.
