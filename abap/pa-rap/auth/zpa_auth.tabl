@@ -1,0 +1,11 @@
+@EndUserText.label : 'PA: user authorizations (display 03 / maintain 02)'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zpa_auth {
+  key client : abap.clnt not null;
+  key uname  : abap.char(40) not null;
+  key werks  : abap.char(4) not null;
+  key actvt  : abap.char(2) not null;
+}

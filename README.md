@@ -93,7 +93,7 @@ SF 연동 설정(Outbound Service, Communication System/Arrangement)과 배포 �
 | 프로젝트 | 내용 |
 |---|---|
 | [PA20 · PA30 · PA40 → SAP Fiori 재구성](pa-fiori/README.md) | SAPGUI 인사 마스터 트랜잭션을 시간 제약 규칙까지 재현한 SAPUI5 앱. 업무 로직 테스트 44건 |
-| [PA20 · PA30 · PA40 RAP 백엔드](abap/pa-rap/README.md) | 위 PA 프로토타입의 규칙을 BTP ABAP Environment의 managed RAP BO(draft)로 구현. TC1/TC2, 채용·조직변경·퇴사 액션, ABAP Unit 20개 |
+| [PA20 · PA30 · PA40 RAP 백엔드](abap/pa-rap/README.md) | 위 PA 프로토타입의 규칙을 BTP ABAP Environment의 managed RAP BO(draft)로 구현. TC1/TC2, 채용·조직변경·퇴사 액션, 인사영역별 권한, ABAP Unit 21개 |
 | [Employee Central 스타일 조직도](ec-orgchart/README.md) | 기준일 기반 조직 트리 · 부서 상세 · 인원 집계 SAPUI5 앱. 업무 로직 테스트 16건 |
 
 ---
